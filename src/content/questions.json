@@ -2,7 +2,8 @@
   {
     "id": "q-acct-001",
     "kind": "question",
-    "topic": "Accounting",
+    "category": "Accounting",
+    "subcategory": "Three statements",
     "title": "The three statements",
     "prompt": "Walk me through the three financial statements.",
     "answer": [
@@ -16,7 +17,8 @@
   {
     "id": "q-acct-002",
     "kind": "question",
-    "topic": "Accounting",
+    "category": "Accounting",
+    "subcategory": "Cash flow",
     "title": "Why the cash flow statement matters",
     "prompt": "If a company is profitable, why might it still run out of cash?",
     "answer": [
@@ -29,7 +31,8 @@
   {
     "id": "q-ev-001",
     "kind": "question",
-    "topic": "Equity and enterprise value",
+    "category": "Valuation",
+    "subcategory": "Enterprise value",
     "title": "Enterprise value versus equity value",
     "prompt": "What is the difference between enterprise value and equity value?",
     "answer": [
@@ -46,7 +49,8 @@
   {
     "id": "q-ev-002",
     "kind": "question",
-    "topic": "Equity and enterprise value",
+    "category": "Valuation",
+    "subcategory": "Enterprise value",
     "title": "Why subtract cash",
     "prompt": "Why do you subtract cash when calculating enterprise value?",
     "answer": [
@@ -62,7 +66,8 @@
   {
     "id": "q-val-001",
     "kind": "question",
-    "topic": "Valuation",
+    "category": "Valuation",
+    "subcategory": "Methods",
     "title": "Main valuation methods",
     "prompt": "What are the three main ways to value a company?",
     "answer": [
@@ -76,7 +81,8 @@
   {
     "id": "q-val-002",
     "kind": "question",
-    "topic": "Valuation",
+    "category": "Valuation",
+    "subcategory": "Multiples",
     "title": "EV/EBITDA versus P/E",
     "prompt": "Why might you use EV/EBITDA rather than P/E to compare companies?",
     "answer": [
@@ -93,7 +99,8 @@
   {
     "id": "q-dcf-001",
     "kind": "question",
-    "topic": "DCF",
+    "category": "Valuation",
+    "subcategory": "DCF",
     "title": "Walk through a DCF",
     "prompt": "Walk me through a DCF.",
     "answer": [
@@ -111,7 +118,8 @@
   {
     "id": "q-dcf-002",
     "kind": "question",
-    "topic": "DCF",
+    "category": "Valuation",
+    "subcategory": "DCF",
     "title": "Calculating WACC",
     "prompt": "How do you calculate WACC, and why is the cost of debt taxed?",
     "answer": [
@@ -128,7 +136,8 @@
   {
     "id": "q-dcf-003",
     "kind": "question",
-    "topic": "DCF",
+    "category": "Valuation",
+    "subcategory": "DCF",
     "title": "Terminal value methods",
     "prompt": "What are the two ways to calculate terminal value, and when would you prefer each?",
     "answer": [
@@ -145,7 +154,8 @@
   {
     "id": "q-lbo-001",
     "kind": "question",
-    "topic": "LBO",
+    "category": "LBO",
+    "subcategory": "Returns",
     "title": "Why leverage increases returns",
     "prompt": "Walk me through a basic LBO. Why does using more debt increase returns?",
     "answer": [
