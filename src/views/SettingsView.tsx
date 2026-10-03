@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { X } from "lucide-react"
+import { ContentSettings } from "@/components/ContentSettings"
 import { GlowButton, Panel } from "@/components/kit"
 import { ACTIONS, DEFAULT_BINDINGS, eventToCombo, isMac, type ActionDef } from "@/lib/keybinds"
 import { useKeybinds } from "@/lib/keybindsContext"
@@ -146,6 +147,8 @@ export function SettingsView() {
           record a new one.
         </p>
       </Panel>
+
+      <ContentSettings />
     </div>
   )
 }

@@ -5,7 +5,7 @@ import { GradeBar, type GradeFeedback } from "@/components/GradeBar"
 import { SessionFilters } from "@/components/SessionFilters"
 import { GlowButton, Panel, ProgressBar, SlideStage, useSlideSequence } from "@/components/kit"
 import { FLIP_MS, prefersReducedMotion } from "@/components/kit/motion"
-import { exercisesById, exercisesFor } from "@/content"
+import { useContent } from "@/content/contentContext"
 import type { ExerciseKind } from "@/content/types"
 import {
   getAllCardStates,
@@ -34,6 +34,7 @@ const LABEL: Record<ExerciseKind, string> = {
 const emptyCounts = (): Record<Rating, number> => ({ again: 0, hard: 0, good: 0, easy: 0 })
 
 export function StudyView({ kind }: { kind: ExerciseKind }) {
+  const { exercisesFor, exercisesById } = useContent()
   const [states, setStates] = useState<Map<string, CardState> | null>(null)
   const [queue, setQueue] = useState<string[]>([])
   const [position, setPosition] = useState(0)
@@ -59,7 +60,7 @@ export function StudyView({ kind }: { kind: ExerciseKind }) {
       setRevealed(false)
       session.current = null
     },
-    [kind],
+    [kind, exercisesFor],
   )
 
   useEffect(() => {
@@ -74,7 +75,7 @@ export function StudyView({ kind }: { kind: ExerciseKind }) {
       cancelled = true
       pending.forEach(window.clearTimeout)
     }
-  }, [begin, kind])
+  }, [begin, kind, exercisesFor])
 
   const applySelection = useCallback(
     (sel: Selection) => {

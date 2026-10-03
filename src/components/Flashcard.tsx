@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { FlipCard, GlowButton, Panel } from "@/components/kit"
-import { conceptsById } from "@/content"
+import { useContent } from "@/content/contentContext"
 import { useKeybinds } from "@/lib/keybindsContext"
 import type { Exercise, StatementRow, StatementTable } from "@/content/types"
 import { cn } from "@/lib/utils"
@@ -136,6 +136,7 @@ function Front({ exercise, onReveal }: { exercise: Exercise; onReveal: () => voi
 }
 
 function Back({ exercise, onHide }: { exercise: Exercise; onHide: () => void }) {
+  const { conceptsById } = useContent()
   const { label } = useKeybinds()
   const flipKey = label("flip")
   return (

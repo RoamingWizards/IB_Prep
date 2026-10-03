@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "example-1",
+  "title": "Example content pack",
+  "description": "A small valid pack that shows every field. It adds a new category, two concepts, two questions and one scenario.",
+  "concepts": [
+    {
+      "id": "c-interest-coverage",
+      "name": "Interest coverage",
+      "summary": "EBIT (or EBITDA) divided by interest expense. Shows how comfortably a company can pay the interest on its debt."
+    },
+    {
+      "id": "c-net-leverage",
+      "name": "Net leverage",
+      "summary": "Net debt divided by EBITDA. A standard measure of how heavily a company is borrowed relative to its earnings."
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-credit-001",
+      "kind": "question",
+      "category": "Debt and credit",
+      "subcategory": "Credit metrics",
+      "title": "Interest coverage ratio",
+      "prompt": "What does the interest coverage ratio tell you, and how is it calculated?",
+      "answer": [
+        "Interest coverage measures how many times a company's operating earnings can pay its interest expense. A higher ratio means more room before earnings fall short of interest payments.",
+        "It is usually EBIT divided by interest expense. EBITDA is used as well, which gives a higher and more generous ratio because it ignores depreciation and amortisation."
+      ],
+      "conceptIds": ["c-interest-coverage"],
+      "formulas": [
+        { "label": "Interest coverage", "expression": "EBIT ÷ Interest expense" },
+        { "label": "EBITDA coverage", "expression": "EBITDA ÷ Interest expense" }
+      ]
+    },
+    {
+      "id": "q-credit-002",
+      "kind": "question",
+      "category": "Debt and credit",
+      "subcategory": "Credit metrics",
+      "title": "Why lenders use net leverage",
+      "prompt": "Why do lenders look at net debt to EBITDA?",
+      "answer": [
+        "It compares what a company owes, after counting the cash it could use to repay debt, with the earnings that service the debt. It is a quick way to judge how many years of EBITDA it would take to repay borrowings.",
+        "Lenders set limits on it in loan agreements (covenants), and acquirers use it to size how much debt a deal can carry."
+      ],
+      "conceptIds": ["c-net-leverage", "c-net-debt"],
+      "formulas": [{ "label": "Net leverage", "expression": "(Total debt − Cash) ÷ EBITDA" }]
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "s-credit-001",
+      "kind": "scenario",
+      "category": "Debt and credit",
+      "subcategory": "Credit metrics",
+      "title": "Repaying debt with cash",
+      "prompt": "A company repays $50m of debt using $50m of its cash. What happens to its net leverage?",
+      "givens": [
+        { "label": "Debt", "value": "$500m" },
+        { "label": "Cash", "value": "$100m" },
+        { "label": "EBITDA", "value": "$125m" },
+        { "label": "Assume", "value": "No other changes" }
+      ],
+      "answer": [
+        "Before: net debt is $500m − $100m = $400m, so net leverage is $400m ÷ $125m = 3.2x.",
+        "After: debt falls to $450m and cash falls to $50m, so net debt is still $400m and net leverage is still 3.2x.",
+        "Repaying debt with cash lowers gross debt but leaves net debt unchanged, so net leverage does not move."
+      ],
+      "conceptIds": ["c-net-leverage", "c-net-debt"],
+      "formulas": [{ "label": "Net leverage", "expression": "Net debt ÷ EBITDA" }],
+      "tables": [
+        {
+          "title": "Net leverage before and after",
+          "unit": "$m",
+          "columns": ["Before", "After"],
+          "rows": [
+            { "label": "Debt", "values": [500, 450] },
+            { "label": "Cash", "values": [100, 50] },
+            { "label": "Net debt", "values": [400, 400], "style": "subtotal" },
+            { "label": "EBITDA", "values": [125, 125] },
+            { "label": "Net debt / EBITDA", "values": [3.2, 3.2], "style": "total", "format": "multiple" }
+          ]
+        }
+      ]
+    }
+  ]
+}
