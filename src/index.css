@@ -5,6 +5,7 @@
 @import "@fontsource/ibm-plex-sans/400.css";
 @import "@fontsource/ibm-plex-sans/500.css";
 @import "@fontsource/ibm-plex-sans/600.css";
+@import "./styles/ui.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -56,93 +57,62 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Dark-only desktop theme.
+   Canvas: charcoal. Panels: a step lighter. Accent: blue with a violet shoulder. */
 :root {
-    /* Canvas: cool paper grey; ink: blue-black; accent: ledger blue */
-    --background: #f4f5f3;
-    --foreground: #1b2430;
-    --card: #ffffff;
-    --card-foreground: #1b2430;
-    --popover: #ffffff;
-    --popover-foreground: #1b2430;
-    --primary: #1f4fa3;
-    --primary-foreground: #ffffff;
-    --secondary: #e9ecef;
-    --secondary-foreground: #1b2430;
-    --muted: #eceee9;
-    --muted-foreground: #5f6b78;
-    --accent: #e6ecf6;
-    --accent-foreground: #1b2430;
-    --destructive: #a63d2f;
-    --border: #dce0e4;
-    --input: #cfd5db;
-    --ring: #1f4fa3;
-    --chart-1: #1f4fa3;
-    --chart-2: #5f6b78;
-    --chart-3: #2f6b3f;
-    --chart-4: #9a6a12;
-    --chart-5: #a63d2f;
-    --radius: 0.375rem;
-    --sidebar: #eceee9;
-    --sidebar-foreground: #1b2430;
-    --sidebar-primary: #1f4fa3;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #e0e4dc;
-    --sidebar-accent-foreground: #1b2430;
-    --sidebar-border: #dce0e4;
-    --sidebar-ring: #1f4fa3;
-    --grade-again: #a63d2f;
-    --grade-hard: #9a6a12;
-    --grade-good: #1f4fa3;
-    --grade-easy: #2f6b3f;
-}
-
-.dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    color-scheme: dark;
+    --background: #121317;
+    --foreground: #e7e9ef;
+    --card: #1a1c23;
+    --card-foreground: #e7e9ef;
+    --popover: #1a1c23;
+    --popover-foreground: #e7e9ef;
+    --primary: #5b9bff;
+    --primary-foreground: #0b1020;
+    --secondary: #242732;
+    --secondary-foreground: #e7e9ef;
+    --muted: #1f222b;
+    --muted-foreground: #8d93a3;
+    --accent: #262a38;
+    --accent-foreground: #e7e9ef;
+    --destructive: #f0657a;
+    --border: rgb(255 255 255 / 0.08);
+    --input: rgb(255 255 255 / 0.12);
+    --ring: #6d8dff;
+    --chart-1: #5b9bff;
+    --chart-2: #8d93a3;
+    --chart-3: #38c98d;
+    --chart-4: #e8ac4e;
+    --chart-5: #f0657a;
+    --radius: 0.625rem;
+    --sidebar: #16181e;
+    --sidebar-foreground: #e7e9ef;
+    --sidebar-primary: #5b9bff;
+    --sidebar-primary-foreground: #0b1020;
+    --sidebar-accent: #232734;
+    --sidebar-accent-foreground: #e7e9ef;
+    --sidebar-border: rgb(255 255 255 / 0.06);
+    --sidebar-ring: #6d8dff;
+    --grade-again: #f0657a;
+    --grade-hard: #e8ac4e;
+    --grade-good: #5b9bff;
+    --grade-easy: #38c98d;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
     @apply bg-background text-foreground;
-    }
+    background-image:
+      radial-gradient(900px 520px at 88% -8%, rgb(99 102 241 / 0.1), transparent 62%),
+      radial-gradient(720px 520px at -6% 104%, rgb(91 155 255 / 0.07), transparent 60%);
+    background-attachment: fixed;
+  }
   html {
     @apply font-sans;
     font-feature-settings: "kern";
     -webkit-font-smoothing: antialiased;
-    }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation: none !important; transition: none !important; }
   }
 }

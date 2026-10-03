@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { Panel } from "@/components/kit"
 import { Badge } from "@/components/ui/badge"
 import {
   Table,
@@ -37,16 +38,18 @@ export function HistoryView() {
   const { sessions, attempts } = data
 
   return (
-    <div className="space-y-10">
-      <h1 className="text-xl font-semibold">History</h1>
+    <div className="space-y-6">
+      <h1 className="font-serif text-2xl font-semibold">History</h1>
 
       {sessions.length === 0 ? (
-        <p className="text-muted-foreground" data-testid="history-empty">
-          No attempts yet. Grade a card in Questions or Scenarios and it will appear here.
-        </p>
+        <Panel className="p-6">
+          <p className="text-muted-foreground" data-testid="history-empty">
+            No attempts yet. Grade a card in Questions or Scenarios and it will appear here.
+          </p>
+        </Panel>
       ) : (
         <>
-          <section>
+          <Panel className="p-5">
             <h2 className="mb-3 text-sm font-medium">Sessions</h2>
             <Table data-testid="sessions-table">
               <TableHeader>
@@ -78,9 +81,9 @@ export function HistoryView() {
                 ))}
               </TableBody>
             </Table>
-          </section>
+          </Panel>
 
-          <section>
+          <Panel className="p-5">
             <h2 className="mb-3 text-sm font-medium">Recent attempts</h2>
             <Table data-testid="attempts-table">
               <TableHeader>
@@ -104,7 +107,7 @@ export function HistoryView() {
                 ))}
               </TableBody>
             </Table>
-          </section>
+          </Panel>
         </>
       )}
     </div>
