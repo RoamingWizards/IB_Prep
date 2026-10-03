@@ -1,5 +1,5 @@
-import { useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import type { ReactNode } from "react"
+import { ArrowLeft } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import {
   Table,
@@ -9,31 +9,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { FlipCard, GlowButton, Panel } from "@/components/kit"
 import { conceptsById } from "@/content"
 import type { Exercise, StatementRow, StatementTable } from "@/content/types"
-import { RATINGS, type Rating } from "@/lib/db"
 import { cn } from "@/lib/utils"
-
-const GRADE_LABEL: Record<Rating, string> = {
-  again: "Again",
-  hard: "Hard",
-  good: "Good",
-  easy: "Easy",
-}
-const GRADE_STYLE: Record<Rating, string> = {
-  again: "border-grade-again/40 text-grade-again hover:bg-grade-again/10",
-  hard: "border-grade-hard/40 text-grade-hard hover:bg-grade-hard/10",
-  good: "border-grade-good/40 text-grade-good hover:bg-grade-good/10",
-  easy: "border-grade-easy/40 text-grade-easy hover:bg-grade-easy/10",
-}
-
-function isTyping(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) return false
-  return (
-    target.isContentEditable ||
-    ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)
-  )
-}
 
 function formatValue(v: number | null, format: StatementRow["format"]) {
   if (v === null) return ""
@@ -49,13 +28,11 @@ function formatValue(v: number | null, format: StatementRow["format"]) {
 
 function Statement({ table }: { table: StatementTable }) {
   return (
-    <div>
+    <Panel inset className="p-4">
       <p className="mb-2 text-sm font-medium">
         {table.title}
         {table.unit && (
-          <span className="ml-2 font-normal text-muted-foreground">
-            {table.unit}
-          </span>
+          <span className="ml-2 font-normal text-muted-foreground">{table.unit}</span>
         )}
       </p>
       <Table>
@@ -75,7 +52,7 @@ function Statement({ table }: { table: StatementTable }) {
               key={row.label}
               className={cn(
                 row.style === "subtotal" && "font-medium",
-                row.style === "total" && "border-t-2 border-foreground/30 font-semibold",
+                row.style === "total" && "border-t border-foreground/25 font-semibold",
               )}
             >
               <TableCell>{row.label}</TableCell>
@@ -88,93 +65,110 @@ function Statement({ table }: { table: StatementTable }) {
           ))}
         </TableBody>
       </Table>
+    </Panel>
+  )
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section>
+      <h3 className="mb-2 text-sm font-medium text-muted-foreground">{title}</h3>
+      {children}
+    </section>
+  )
+}
+
+function Front({ exercise, onReveal }: { exercise: Exercise; onReveal: () => void }) {
+  function onClick() {
+    // A drag-selection ending on the card is not a flip request.
+    if (window.getSelection()?.toString()) return
+    onReveal()
+  }
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label="Reveal answer"
+      data-interactive="true"
+      data-testid="card-front"
+      className="study-card flex h-full flex-col px-10 py-8 outline-none"
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") onReveal()
+      }}
+    >
+      <p className="text-sm text-muted-foreground">{exercise.title}</p>
+      <div className="flex flex-1 flex-col justify-center py-6">
+        <p className="max-w-[34ch] font-serif text-[clamp(1.5rem,2.6vw,2.125rem)] leading-[1.3] font-semibold">
+          {exercise.prompt}
+        </p>
+        {exercise.givens && (
+          <dl className="mt-8 grid max-w-xl grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-[0.9375rem]">
+            {exercise.givens.map((g) => (
+              <div key={g.label} className="contents">
+                <dt className="text-muted-foreground">{g.label}</dt>
+                <dd className="tabular-nums">{g.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </div>
+      <p className="text-center text-sm text-muted-foreground">
+        Click the card or press{" "}
+        <kbd className="rounded border border-white/15 bg-white/5 px-1.5 py-0.5 text-xs">Space</kbd>{" "}
+        to reveal the answer
+      </p>
     </div>
   )
 }
 
-interface Props {
-  exercise: Exercise
-  revealed: boolean
-  onReveal: () => void
-  onGrade: (rating: Rating) => void
-}
-
-/** Shared flashcard for Questions and Scenarios. */
-export function Flashcard({ exercise, revealed, onReveal, onGrade }: Props) {
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
-      if (isTyping(e.target)) return
-      if (e.code === "Space") {
-        // Space would otherwise activate a focused button a second time.
-        e.preventDefault()
-        if (!revealed) onReveal()
-        return
-      }
-      if (revealed && /^[1-4]$/.test(e.key)) {
-        onGrade(RATINGS[Number(e.key) - 1])
-      }
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [revealed, onReveal, onGrade])
-
+function Back({ exercise, onHide }: { exercise: Exercise; onHide: () => void }) {
   return (
-    <article className="rounded-lg border bg-card p-6 sm:p-8" data-testid="flashcard">
-      <p className="text-sm text-muted-foreground">{exercise.topic}</p>
-      <h2 className="mt-1 font-serif text-2xl leading-snug font-semibold">
-        {exercise.title}
-      </h2>
-      <p className="mt-4 max-w-[62ch] font-serif text-lg leading-relaxed">
-        {exercise.prompt}
-      </p>
+    <div className="study-card flex h-full flex-col" data-testid="card-back">
+      <div className="flex items-center justify-between gap-4 border-b border-white/[0.07] px-6 py-3.5">
+        <GlowButton
+          tone="neutral"
+          className="h-8 px-3 text-sm"
+          onClick={onHide}
+          data-native-space
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          Show question
+        </GlowButton>
+        <p className="truncate text-sm text-muted-foreground">{exercise.title}</p>
+      </div>
 
-      {exercise.givens && (
-        <dl className="mt-5 grid max-w-[62ch] grid-cols-[max-content_1fr] gap-x-6 gap-y-1.5 border-l-2 pl-4 text-sm">
-          {exercise.givens.map((g) => (
-            <div key={g.label} className="contents">
-              <dt className="text-muted-foreground">{g.label}</dt>
-              <dd className="tabular-nums">{g.value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-
-      {!revealed ? (
-        <div className="mt-8">
-          <Button size="lg" onClick={onReveal}>
-            Reveal answer
-            <kbd className="ml-2 rounded bg-primary-foreground/20 px-1.5 text-xs">
-              Space
-            </kbd>
-          </Button>
-        </div>
-      ) : (
-        <div className="mt-8 space-y-6 border-t pt-6" data-testid="answer">
-          <section className="max-w-[62ch] space-y-3 font-serif text-base leading-relaxed">
+      <div
+        className="thin-scroll min-h-0 flex-1 overflow-y-auto px-8 py-6"
+        data-testid="answer"
+        tabIndex={0}
+        aria-label="Answer"
+      >
+        <div className="space-y-7">
+          <div className="max-w-[66ch] space-y-3.5 text-base leading-[1.7]">
             {exercise.answer.map((p, i) => (
               <p key={i}>{p}</p>
             ))}
-          </section>
+          </div>
 
           {exercise.formulas && (
-            <section>
-              <h3 className="mb-2 text-sm font-medium">Formulas</h3>
-              <dl className="space-y-1.5 text-sm">
-                {exercise.formulas.map((f) => (
-                  <div key={f.label} className="flex flex-wrap gap-x-3">
-                    <dt className="text-muted-foreground">{f.label}</dt>
-                    <dd className="font-medium">{f.expression}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
+            <Section title="Formulas">
+              <Panel inset className="p-4">
+                <dl className="space-y-2.5 text-sm">
+                  {exercise.formulas.map((f) => (
+                    <div key={f.label} className="flex flex-wrap gap-x-4 gap-y-0.5">
+                      <dt className="min-w-36 text-muted-foreground">{f.label}</dt>
+                      <dd className="font-medium">{f.expression}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </Panel>
+            </Section>
           )}
 
           {exercise.tables?.map((t) => <Statement key={t.title} table={t} />)}
 
-          <section>
-            <h3 className="mb-2 text-sm font-medium">Key concepts</h3>
+          <Section title="Key concepts">
             <ul className="flex flex-wrap gap-2">
               {exercise.conceptIds.map((id) => {
                 const c = conceptsById.get(id)
@@ -187,24 +181,27 @@ export function Flashcard({ exercise, revealed, onReveal, onGrade }: Props) {
                 )
               })}
             </ul>
-          </section>
-
-          <div className="flex flex-wrap gap-2 border-t pt-6">
-            {RATINGS.map((r, i) => (
-              <Button
-                key={r}
-                variant="outline"
-                size="lg"
-                className={cn("min-w-24", GRADE_STYLE[r])}
-                onClick={() => onGrade(r)}
-              >
-                {GRADE_LABEL[r]}
-                <kbd className="ml-2 text-xs opacity-60">{i + 1}</kbd>
-              </Button>
-            ))}
-          </div>
+          </Section>
         </div>
-      )}
-    </article>
+      </div>
+    </div>
+  )
+}
+
+interface Props {
+  exercise: Exercise
+  revealed: boolean
+  onReveal: () => void
+  onHide: () => void
+}
+
+/** Shared card for Questions and Scenarios: question face, flipping to the answer face. */
+export function Flashcard({ exercise, revealed, onReveal, onHide }: Props) {
+  return (
+    <FlipCard
+      flipped={revealed}
+      front={<Front exercise={exercise} onReveal={onReveal} />}
+      back={<Back exercise={exercise} onHide={onHide} />}
+    />
   )
 }

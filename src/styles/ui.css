@@ -1,0 +1,142 @@
+/* Shared surface, control and motion styles. Used by components in src/components/kit. */
+
+/* ---- Tones: RGB triples so colours can take alpha ---- */
+.tone-neutral { --tone: 160 168 184; }
+.tone-blue    { --tone: 91 155 255; }
+.tone-violet  { --tone: 139 124 246; }
+.tone-again   { --tone: 240 101 122; }
+.tone-hard    { --tone: 232 172 78; }
+.tone-good    { --tone: 91 155 255; }
+.tone-easy    { --tone: 56 201 141; }
+
+/* ---- Panels ---- */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 18px 40px -24px rgb(0 0 0 / 0.8);
+}
+.panel[data-glow="blue"] {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 18px 40px -24px rgb(0 0 0 / 0.8),
+    0 0 60px -28px rgb(91 155 255 / 0.4);
+}
+.panel[data-glow="violet"] {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 18px 40px -24px rgb(0 0 0 / 0.8),
+    0 0 60px -28px rgb(139 124 246 / 0.4);
+}
+.panel-inset {
+  background: rgb(0 0 0 / 0.2);
+  border: 1px solid rgb(255 255 255 / 0.05);
+  border-radius: 12px;
+}
+
+/* Study card surface (both faces) */
+.study-card {
+  background: linear-gradient(180deg, #1e212b 0%, #171a21 100%);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 22px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 28px 60px -28px rgb(0 0 0 / 0.85),
+    0 0 90px -40px rgb(99 102 241 / 0.45);
+}
+.study-card[data-interactive="true"] {
+  cursor: pointer;
+  transition: border-color 160ms, box-shadow 200ms;
+}
+.study-card[data-interactive="true"]:hover {
+  border-color: rgb(120 150 255 / 0.35);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 28px 60px -28px rgb(0 0 0 / 0.85),
+    0 0 100px -34px rgb(91 155 255 / 0.55);
+}
+.study-card:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+
+.thin-scroll { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 0.18) transparent; overscroll-behavior: contain; }
+
+/* ---- Glow button ---- */
+.glow-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 12px;
+  border: 1px solid rgb(var(--tone) / 0.28);
+  background: rgb(var(--tone) / 0.08);
+  color: rgb(var(--tone));
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: background 150ms, border-color 150ms, box-shadow 220ms, transform 90ms, filter 150ms;
+}
+.glow-btn:hover:not(:disabled) {
+  background: rgb(var(--tone) / 0.17);
+  border-color: rgb(var(--tone) / 0.6);
+  box-shadow: 0 0 0 1px rgb(var(--tone) / 0.12), 0 0 24px -4px rgb(var(--tone) / 0.55);
+}
+.glow-btn:active:not(:disabled),
+.glow-btn[data-pressed="true"] {
+  transform: translateY(1px) scale(0.985);
+}
+.glow-btn:focus-visible { outline: 2px solid rgb(var(--tone) / 0.8); outline-offset: 2px; }
+.glow-btn:disabled { cursor: default; opacity: 0.38; }
+.glow-btn[data-flash="true"] { animation: glow-flash 460ms ease-out; opacity: 1; }
+.glow-btn[data-solid="true"] {
+  background: linear-gradient(135deg, #5b9bff, #6d6ff0);
+  border-color: rgb(140 170 255 / 0.6);
+  color: #0b1020;
+  box-shadow: 0 8px 28px -10px rgb(91 155 255 / 0.7);
+}
+.glow-btn[data-solid="true"]:hover:not(:disabled) {
+  background: linear-gradient(135deg, #74a9ff, #8084f5);
+  box-shadow: 0 10px 36px -8px rgb(91 155 255 / 0.9);
+}
+.glow-btn kbd { font: inherit; font-size: 0.75rem; opacity: 0.55; }
+
+@keyframes glow-flash {
+  0%   { background: rgb(var(--tone) / 0.42); border-color: rgb(var(--tone) / 0.95);
+         box-shadow: 0 0 0 1px rgb(var(--tone) / 0.5), 0 0 38px 2px rgb(var(--tone) / 0.85); filter: brightness(1.4); }
+  100% { background: rgb(var(--tone) / 0.08); border-color: rgb(var(--tone) / 0.28);
+         box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent; filter: brightness(1); }
+}
+
+/* ---- Progress bar ---- */
+.progress-track { height: 4px; border-radius: 999px; background: rgb(255 255 255 / 0.07); overflow: hidden; }
+.progress-fill {
+  height: 100%; border-radius: inherit;
+  background: linear-gradient(90deg, #5b9bff, #8b7cf6);
+  box-shadow: 0 0 12px rgb(110 130 255 / 0.7);
+  transition: width 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ---- 3D flip ---- */
+.flip { perspective: 3200px; height: 100%; }
+.flip-inner {
+  position: relative; width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 420ms cubic-bezier(0.4, 0.1, 0.2, 1);
+}
+.flip[data-flipped="true"] .flip-inner { transform: rotateY(180deg); }
+.flip-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.flip-back { transform: rotateY(180deg); }
+
+/* ---- Slide stage: current card leaves left, next enters from the right ---- */
+.slide-stage { position: relative; overflow-x: clip; margin-inline: -1.5rem; padding-inline: 1.5rem; }
+.slide-item { position: absolute; inset: 0 1.5rem; }
+.slide-item[data-phase="out"] { animation: slide-out 260ms cubic-bezier(0.5, 0, 0.75, 0) both; }
+.slide-item[data-phase="in"]  { animation: slide-in 340ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes slide-out { to { transform: translateX(-112%); opacity: 0.35; } }
+@keyframes slide-in  { from { transform: translateX(112%); opacity: 0.35; } to { transform: none; opacity: 1; } }
+@keyframes fade-out  { to { opacity: 0; } }
+@keyframes fade-in   { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---- Reduced motion: no rotation, no travel, just a short fade ---- */
+@media (prefers-reduced-motion: reduce) {
+  .flip-inner { transition: none; transform: none !important; }
+  .flip-face { backface-visibility: visible; -webkit-backface-visibility: visible; transition: opacity 160ms linear; }
+  .flip-back { transform: none; opacity: 0; }
+  .flip[data-flipped="true"] .flip-back { opacity: 1; }
+  .flip[data-flipped="true"] .flip-front { opacity: 0; }
+  .slide-item[data-phase="out"] { animation: fade-out 160ms linear both; }
+  .slide-item[data-phase="in"]  { animation: fade-in 160ms linear both; }
+  .glow-btn { transition: background 150ms, border-color 150ms; }
+  .glow-btn:active:not(:disabled), .glow-btn[data-pressed="true"] { transform: none; }
+  .progress-fill { transition: none; }
+}

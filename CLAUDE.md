@@ -13,6 +13,11 @@ React + TypeScript + Vite, Tailwind v4, shadcn/ui (base-nova) components, `idb` 
 - Interface stays clean, restrained and readable. Prefer standard components.
 - Scope: only Questions, Scenarios and History exist. Do not add other study modes until asked.
 
+## Design
+- Dark desktop theme only. Tokens are in `src/index.css`; shared surface, button and motion styles are in `src/styles/ui.css`; reusable pieces are in `src/components/kit/`. Reuse them for new screens.
+- Motion is CSS transforms and transitions. Always provide the reduced-motion fade.
+- `visual references/` holds mood references only. Do not copy their branding or add features just because they appear there.
+
 ## Commands
 - `npm run dev`: local dev server
 - `npm run build`: typecheck and production build
