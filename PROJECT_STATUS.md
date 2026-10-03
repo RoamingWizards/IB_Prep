@@ -31,6 +31,16 @@
 - Replaced the sidebar with the floating collapsible menu described above and removed the in-window "IB Prep" title (the browser tab title is still "IB Prep").
 - Verified with Playwright at 1280×820 and 760×700: collapse/expand, collapsed state restored after reload, switching modes, Escape, Space reveal still works, no overlap with the card in a narrow window. Build passes.
 
+## Keybinds, two-way flip, fill-the-window (v0.3)
+- Settings → Keybinds: lists Flip card, Rate Again/Hard/Good/Easy and Collapse menu with their shortcuts. Click a field and press a combination (modifiers supported), clear a binding with the X, or Restore defaults. Bindings persist in IndexedDB and are validated on load.
+- One shared handler (`KeybindsProvider`) matches events to the user's bindings (by physical key code, number-pad digits count as digits). Hints on the card, Show question button and grade buttons follow the current bindings and disappear for cleared ones.
+- Conflicts are refused with a message naming the action already using the combination. Combinations reserved by the browser or macOS/Windows (for example ⌘Q, ⌘W, ⌘T, ⌘Tab, ⌘Space, F5, F11, F12, Tab) are refused with an explanation. This list is a best effort; some combinations never reach the page at all.
+- Shortcuts are ignored while typing in a field and while recording a binding (Esc is recorded rather than collapsing the menu while recording). Plain Tab still moves focus during recording and is not assignable.
+- Flip is a toggle: question → answer → question, using the existing animation, with a lock so overlapping presses are ignored. Grading stays disabled on the question face. A focused button or link keeps its own Space/Enter activation (one press, one action); after a mouse click on the menu, focus is released so Space flips the card.
+- Study layout has no fixed max width: the card fills the area beside the menu, the header and grade buttons stay visible, long answers scroll inside the card, and the text column stays about 768px wide and centred inside the card. History and Settings keep a readable maximum width.
+- Verified with Playwright: Space both ways with overlapping presses ignored, key 3 does nothing on the question face, Space/Enter on focused controls act once, typing guards (input and contenteditable), reassigning to Ctrl+Shift+K and Alt+G, persistence after reload, hints following bindings, duplicate and reserved-combination messages, clearing a binding, Restore defaults, and resizing from 1800×1000 down to 520×420 with no horizontal overflow. Build passes.
+- Found and fixed during resize testing: question-face text was clipped at very small heights.
+
 ## Next steps
 - Generate the full question and scenario content set, validating IDs and concept references.
 - Add content versioning so edited content keeps progress.
@@ -41,6 +51,7 @@
 
 ## Known limits
 - Grade buttons are disabled until the answer is shown (matches the earlier rule that grading follows reveal).
+- Bindings are per physical key (layout-independent); a combination that needs a different key on another layout would need re-recording.
 - Lint still warns in shadcn-generated files and that `SlideStage.tsx` exports a hook beside a component.
 - Scheduler is a simple SM-2 variant with no tuning.
 - A session starts at the first grade after opening a deck; reopening starts a new session.

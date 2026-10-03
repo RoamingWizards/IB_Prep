@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table"
 import { FlipCard, GlowButton, Panel } from "@/components/kit"
 import { conceptsById } from "@/content"
+import { useKeybinds } from "@/lib/keybindsContext"
 import type { Exercise, StatementRow, StatementTable } from "@/content/types"
 import { cn } from "@/lib/utils"
 
@@ -79,6 +80,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 function Front({ exercise, onReveal }: { exercise: Exercise; onReveal: () => void }) {
+  const { label } = useKeybinds()
+  const flipKey = label("flip")
   function onClick() {
     // A drag-selection ending on the card is not a flip request.
     if (window.getSelection()?.toString()) return
@@ -91,38 +94,50 @@ function Front({ exercise, onReveal }: { exercise: Exercise; onReveal: () => voi
       aria-label="Reveal answer"
       data-interactive="true"
       data-testid="card-front"
-      className="study-card flex h-full flex-col px-10 py-8 outline-none"
+      className="study-card flex h-full flex-col px-6 py-6 outline-none sm:px-10 sm:py-8"
       onClick={onClick}
       onKeyDown={(e) => {
-        if (e.key === "Enter") onReveal()
+        // Enter activates the card unless the shared shortcut handler already used the key.
+        if (e.key === "Enter" && !e.defaultPrevented) onReveal()
       }}
     >
       <p className="text-sm text-muted-foreground">{exercise.title}</p>
-      <div className="flex flex-1 flex-col justify-center py-6">
-        <p className="max-w-[34ch] font-serif text-[clamp(1.5rem,2.6vw,2.125rem)] leading-[1.3] font-semibold">
-          {exercise.prompt}
-        </p>
-        {exercise.givens && (
-          <dl className="mt-8 grid max-w-xl grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-[0.9375rem]">
-            {exercise.givens.map((g) => (
-              <div key={g.label} className="contents">
-                <dt className="text-muted-foreground">{g.label}</dt>
-                <dd className="tabular-nums">{g.value}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
+      <div className="thin-scroll flex min-h-0 flex-1 flex-col overflow-y-auto py-6">
+        {/* my-auto centres short content but lets tall content start at the top and scroll */}
+        <div className="mx-auto my-auto w-full max-w-3xl">
+          <p className="font-serif text-[clamp(1.5rem,2.4vw,2.5rem)] leading-[1.3] font-semibold">
+            {exercise.prompt}
+          </p>
+          {exercise.givens && (
+            <dl className="mt-8 grid max-w-xl grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-[0.9375rem]">
+              {exercise.givens.map((g) => (
+                <div key={g.label} className="contents">
+                  <dt className="text-muted-foreground">{g.label}</dt>
+                  <dd className="tabular-nums">{g.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
       </div>
       <p className="text-center text-sm text-muted-foreground">
-        Click the card or press{" "}
-        <kbd className="rounded border border-white/15 bg-white/5 px-1.5 py-0.5 text-xs">Space</kbd>{" "}
-        to reveal the answer
+        {flipKey ? (
+          <>
+            Click the card or press{" "}
+            <kbd className="rounded border border-white/15 bg-white/5 px-1.5 py-0.5 text-xs">{flipKey}</kbd>{" "}
+            to reveal the answer
+          </>
+        ) : (
+          "Click the card to reveal the answer"
+        )}
       </p>
     </div>
   )
 }
 
 function Back({ exercise, onHide }: { exercise: Exercise; onHide: () => void }) {
+  const { label } = useKeybinds()
+  const flipKey = label("flip")
   return (
     <div className="study-card flex h-full flex-col" data-testid="card-back">
       <div className="flex items-center justify-between gap-4 border-b border-white/[0.07] px-6 py-3.5">
@@ -130,21 +145,21 @@ function Back({ exercise, onHide }: { exercise: Exercise; onHide: () => void }) 
           tone="neutral"
           className="h-8 px-3 text-sm"
           onClick={onHide}
-          data-native-space
         >
           <ArrowLeft className="size-4" aria-hidden />
           Show question
+          {flipKey && <kbd>{flipKey}</kbd>}
         </GlowButton>
         <p className="truncate text-sm text-muted-foreground">{exercise.title}</p>
       </div>
 
       <div
-        className="thin-scroll min-h-0 flex-1 overflow-y-auto px-8 py-6"
+        className="thin-scroll min-h-0 flex-1 overflow-y-auto px-6 py-6 sm:px-10"
         data-testid="answer"
         tabIndex={0}
         aria-label="Answer"
       >
-        <div className="space-y-7">
+        <div className="mx-auto w-full max-w-3xl space-y-7">
           <div className="max-w-[66ch] space-y-3.5 text-base leading-[1.7]">
             {exercise.answer.map((p, i) => (
               <p key={i}>{p}</p>

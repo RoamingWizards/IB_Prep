@@ -2,16 +2,17 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { Flashcard } from "@/components/Flashcard"
 import { GradeBar, type GradeFeedback } from "@/components/GradeBar"
 import { GlowButton, Panel, ProgressBar, SlideStage, useSlideSequence } from "@/components/kit"
+import { FLIP_MS, prefersReducedMotion } from "@/components/kit/motion"
 import { exercisesById, exercisesFor } from "@/content"
 import type { ExerciseKind } from "@/content/types"
 import {
   getAllCardStates,
-  RATINGS,
   recordAttempt,
   type CardState,
   type Rating,
   type Session,
 } from "@/lib/db"
+import { useShortcutHandlers } from "@/lib/keybindsContext"
 import { buildPracticeQueue, buildQueue, countDue, nextState } from "@/lib/scheduler"
 
 const LABEL: Record<ExerciseKind, string> = {
@@ -20,11 +21,6 @@ const LABEL: Record<ExerciseKind, string> = {
 }
 
 const emptyCounts = (): Record<Rating, number> => ({ again: 0, hard: 0, good: 0, easy: 0 })
-
-function isTyping(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) return false
-  return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)
-}
 
 export function StudyView({ kind }: { kind: ExerciseKind }) {
   const [states, setStates] = useState<Map<string, CardState> | null>(null)
@@ -36,6 +32,7 @@ export function StudyView({ kind }: { kind: ExerciseKind }) {
   const [feedback, setFeedback] = useState<GradeFeedback | null>(null)
   const session = useRef<Session | null>(null)
   const busyRef = useRef(false) // synchronous lock; state alone would lag behind rapid input
+  const flipLock = useRef(false) // true while a flip animation is running
   const timers = useRef<number[]>([])
   const slide = useSlideSequence()
 
@@ -67,12 +64,24 @@ export function StudyView({ kind }: { kind: ExerciseKind }) {
   const currentId = queue[position]
   const exercise = currentId ? exercisesById.get(currentId) : undefined
 
+  /** Flips the card either way. Ignored during a grading transition or while another flip is running. */
+  const toggleFlip = useCallback(() => {
+    if (!exercise || busyRef.current || flipLock.current) return
+    flipLock.current = true
+    timers.current.push(
+      window.setTimeout(() => {
+        flipLock.current = false
+      }, prefersReducedMotion() ? 180 : FLIP_MS + 30),
+    )
+    setRevealed((r) => !r)
+  }, [exercise])
+  // The question face's click and the answer face's "Show question" each only make sense one way.
   const reveal = useCallback(() => {
-    if (!busyRef.current) setRevealed(true)
-  }, [])
+    if (!revealed) toggleFlip()
+  }, [revealed, toggleFlip])
   const hide = useCallback(() => {
-    if (!busyRef.current) setRevealed(false)
-  }, [])
+    if (revealed) toggleFlip()
+  }, [revealed, toggleFlip])
 
   /** Saves the rating once, then slides to the next card. Ignored while a transition runs. */
   const submit = useCallback(
@@ -127,31 +136,14 @@ export function StudyView({ kind }: { kind: ExerciseKind }) {
     [exercise, states, revealed, kind, slide],
   )
 
-  // Space reveals; 1-4 grade. Never while typing in a field.
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || isTyping(e.target)) return
-      if (e.code === "Space") {
-        if ((e.target as HTMLElement | null)?.closest?.("[data-native-space]")) return
-        e.preventDefault()
-        reveal()
-      } else if (revealed && /^[1-4]$/.test(e.key)) {
-        void submit(RATINGS[Number(e.key) - 1])
-      }
-    }
-    // Space activates a focused button on keyup; stop that so it can't also click.
-    function onKeyUp(e: KeyboardEvent) {
-      if (e.code !== "Space" || isTyping(e.target)) return
-      if ((e.target as HTMLElement | null)?.closest?.("[data-native-space]")) return
-      e.preventDefault()
-    }
-    window.addEventListener("keydown", onKeyDown)
-    window.addEventListener("keyup", onKeyUp)
-    return () => {
-      window.removeEventListener("keydown", onKeyDown)
-      window.removeEventListener("keyup", onKeyUp)
-    }
-  }, [revealed, reveal, submit])
+  // Shortcuts come from the shared handler (see KeybindsProvider), using the user's bindings.
+  useShortcutHandlers({
+    flip: toggleFlip,
+    again: () => void submit("again"),
+    hard: () => void submit("hard"),
+    good: () => void submit("good"),
+    easy: () => void submit("easy"),
+  })
 
   if (!states) return null
 
@@ -189,8 +181,8 @@ export function StudyView({ kind }: { kind: ExerciseKind }) {
   const total = done + remaining
 
   return (
-    <div className="flex flex-1 flex-col gap-5">
-      <header className="space-y-3">
+    <div className="flex h-full min-h-0 flex-col gap-4">
+      <header className="shrink-0 space-y-3">
         <div className="flex items-baseline justify-between gap-4">
           <p className="flex items-center gap-2 text-sm font-medium">
             <span className="size-2 rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" aria-hidden />
@@ -208,7 +200,7 @@ export function StudyView({ kind }: { kind: ExerciseKind }) {
         stageRef={slide.stageRef}
         phase={slide.phase}
         itemKey={`${exercise.id}-${position}`}
-        className="min-h-[24rem] flex-1"
+        className="min-h-0 flex-1"
       >
         <Flashcard exercise={exercise} revealed={revealed} onReveal={reveal} onHide={hide} />
       </SlideStage>
