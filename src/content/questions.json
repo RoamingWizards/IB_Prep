@@ -1,0 +1,163 @@
+[
+  {
+    "id": "q-acct-001",
+    "kind": "question",
+    "topic": "Accounting",
+    "title": "The three statements",
+    "prompt": "Walk me through the three financial statements.",
+    "answer": [
+      "The income statement shows revenue, expenses and net income over a period.",
+      "The balance sheet shows assets, liabilities and shareholders' equity at a point in time, and assets must equal liabilities plus equity.",
+      "The cash flow statement starts with net income, adjusts for non-cash items and changes in working capital to reach cash from operations, then adds cash from investing and financing to give the net change in cash.",
+      "They link through net income, which flows into retained earnings and the top of the cash flow statement, and through the ending cash balance, which becomes cash on the balance sheet."
+    ],
+    "conceptIds": ["c-three-statements", "c-accrual-accounting"]
+  },
+  {
+    "id": "q-acct-002",
+    "kind": "question",
+    "topic": "Accounting",
+    "title": "Why the cash flow statement matters",
+    "prompt": "If a company is profitable, why might it still run out of cash?",
+    "answer": [
+      "Net income is an accrual measure. It records revenue when earned and expenses when incurred, not when cash changes hands.",
+      "A profitable company can burn cash if it has to build working capital (customers pay slowly, inventory builds up), spend heavily on capex, or repay debt.",
+      "The cash flow statement reconciles net income to the actual change in cash, which is why lenders and investors focus on it."
+    ],
+    "conceptIds": ["c-accrual-accounting", "c-three-statements", "c-non-cash-charges"]
+  },
+  {
+    "id": "q-ev-001",
+    "kind": "question",
+    "topic": "Equity and enterprise value",
+    "title": "Enterprise value versus equity value",
+    "prompt": "What is the difference between enterprise value and equity value?",
+    "answer": [
+      "Equity value is the value of the company that belongs to shareholders. For a listed company it is diluted shares outstanding multiplied by the share price.",
+      "Enterprise value is the value of the core operating business to all capital providers: shareholders, lenders, preferred holders and minority interests.",
+      "You move from equity value to enterprise value by adding debt, preferred stock and non-controlling interests, and subtracting cash and non-operating assets."
+    ],
+    "conceptIds": ["c-enterprise-value", "c-equity-value", "c-net-debt"],
+    "formulas": [
+      { "label": "Equity value", "expression": "Diluted shares outstanding × Share price" },
+      { "label": "Enterprise value", "expression": "Equity value + Debt + Preferred stock + Non-controlling interests − Cash" }
+    ]
+  },
+  {
+    "id": "q-ev-002",
+    "kind": "question",
+    "topic": "Equity and enterprise value",
+    "title": "Why subtract cash",
+    "prompt": "Why do you subtract cash when calculating enterprise value?",
+    "answer": [
+      "Enterprise value measures the value of the operating business. Cash is a non-operating asset: an acquirer could use it to pay down part of the purchase price or debt immediately.",
+      "Think of buying a house that comes with money in a drawer. The effective price of the house is the price paid minus the money you get back.",
+      "Debt is added for the same reason in reverse: the buyer takes on an obligation to repay it."
+    ],
+    "conceptIds": ["c-enterprise-value", "c-net-debt"],
+    "formulas": [
+      { "label": "Net debt", "expression": "Total debt − Cash and cash equivalents" }
+    ]
+  },
+  {
+    "id": "q-val-001",
+    "kind": "question",
+    "topic": "Valuation",
+    "title": "Main valuation methods",
+    "prompt": "What are the three main ways to value a company?",
+    "answer": [
+      "Trading comparables: apply multiples of similar listed companies, such as EV/EBITDA or P/E, to the target's metrics.",
+      "Precedent transactions: apply multiples paid in past acquisitions of similar companies. These usually give higher values because they include a control premium.",
+      "Discounted cash flow: project free cash flows, discount them at the cost of capital and add a discounted terminal value. It is intrinsic rather than market-based.",
+      "Bankers usually show all three on a football field chart to frame a valuation range."
+    ],
+    "conceptIds": ["c-trading-comps", "c-precedent-transactions", "c-dcf"]
+  },
+  {
+    "id": "q-val-002",
+    "kind": "question",
+    "topic": "Valuation",
+    "title": "EV/EBITDA versus P/E",
+    "prompt": "Why might you use EV/EBITDA rather than P/E to compare companies?",
+    "answer": [
+      "EV/EBITDA is independent of capital structure. Both enterprise value and EBITDA are measured before the effect of debt, so companies with different leverage compare cleanly.",
+      "P/E is affected by interest expense, tax rates and non-cash charges like D&A, all of which vary between companies for reasons unrelated to operating performance.",
+      "P/E is still common for sectors where leverage is part of the business model, such as banks and insurers."
+    ],
+    "conceptIds": ["c-ev-ebitda", "c-capital-structure", "c-trading-comps"],
+    "formulas": [
+      { "label": "EV/EBITDA", "expression": "Enterprise value ÷ EBITDA" },
+      { "label": "P/E", "expression": "Share price ÷ Earnings per share" }
+    ]
+  },
+  {
+    "id": "q-dcf-001",
+    "kind": "question",
+    "topic": "DCF",
+    "title": "Walk through a DCF",
+    "prompt": "Walk me through a DCF.",
+    "answer": [
+      "Project unlevered free cash flow, usually for five to ten years, from revenue, margins, taxes, capex and working capital assumptions.",
+      "Calculate a terminal value for the years beyond the projection, using either the perpetuity growth method or an exit multiple.",
+      "Discount the cash flows and terminal value back to today at WACC, then sum them to get enterprise value.",
+      "Bridge to equity value by subtracting net debt, then divide by diluted shares to get an implied share price."
+    ],
+    "conceptIds": ["c-dcf", "c-ufcf", "c-wacc", "c-terminal-value"],
+    "formulas": [
+      { "label": "Unlevered FCF", "expression": "EBIT × (1 − t) + D&A − Capex − Δ Net working capital" },
+      { "label": "Enterprise value", "expression": "Σ UFCFₙ ÷ (1 + WACC)ⁿ + TV ÷ (1 + WACC)ᴺ" }
+    ]
+  },
+  {
+    "id": "q-dcf-002",
+    "kind": "question",
+    "topic": "DCF",
+    "title": "Calculating WACC",
+    "prompt": "How do you calculate WACC, and why is the cost of debt taxed?",
+    "answer": [
+      "WACC weights the cost of each source of capital by its share of total capital, using market values.",
+      "The cost of equity usually comes from CAPM: the risk-free rate plus beta times the equity risk premium.",
+      "Interest is tax-deductible, so the effective cost of debt is the pre-tax rate multiplied by one minus the tax rate."
+    ],
+    "conceptIds": ["c-wacc", "c-capital-structure", "c-tax-shield"],
+    "formulas": [
+      { "label": "WACC", "expression": "E ÷ (D + E) × Re + D ÷ (D + E) × Rd × (1 − t)" },
+      { "label": "Cost of equity (CAPM)", "expression": "Rf + β × (Rm − Rf)" }
+    ]
+  },
+  {
+    "id": "q-dcf-003",
+    "kind": "question",
+    "topic": "DCF",
+    "title": "Terminal value methods",
+    "prompt": "What are the two ways to calculate terminal value, and when would you prefer each?",
+    "answer": [
+      "The perpetuity growth method assumes cash flows grow at a constant rate forever. The growth rate should stay below long-run nominal GDP growth.",
+      "The exit multiple method applies a multiple, usually EV/EBITDA, to the final year's metric, based on comparable companies or transactions.",
+      "Bankers often prefer exit multiples because they tie to market data. The perpetuity method is more common in academic or intrinsic work. Each should be used to sense-check the other through the implied growth rate or implied multiple."
+    ],
+    "conceptIds": ["c-terminal-value", "c-dcf", "c-ev-ebitda"],
+    "formulas": [
+      { "label": "Perpetuity growth", "expression": "UFCFₙ × (1 + g) ÷ (WACC − g)" },
+      { "label": "Exit multiple", "expression": "EBITDAₙ × Exit EV/EBITDA multiple" }
+    ]
+  },
+  {
+    "id": "q-lbo-001",
+    "kind": "question",
+    "topic": "LBO",
+    "title": "Why leverage increases returns",
+    "prompt": "Walk me through a basic LBO. Why does using more debt increase returns?",
+    "answer": [
+      "A sponsor buys a company using a mix of debt and equity, operates it for three to seven years, uses its cash flow to repay debt, then sells it.",
+      "Returns come from EBITDA growth, multiple expansion and debt paydown.",
+      "Debt raises returns because the sponsor puts in less equity for the same purchase price. Any gain in enterprise value accrues to a smaller equity base, and interest is tax-deductible.",
+      "The trade-off is risk: more debt means higher interest costs and a greater chance of default if performance falls short."
+    ],
+    "conceptIds": ["c-lbo", "c-irr-moic", "c-capital-structure", "c-tax-shield"],
+    "formulas": [
+      { "label": "MOIC", "expression": "Equity value at exit ÷ Equity invested" },
+      { "label": "IRR (single exit)", "expression": "MOIC^(1 ÷ years) − 1" }
+    ]
+  }
+]

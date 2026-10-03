@@ -1,0 +1,127 @@
+[
+  {
+    "id": "s-3s-001",
+    "kind": "scenario",
+    "topic": "Accounting",
+    "title": "Depreciation rises by $10",
+    "prompt": "Depreciation increases by $10. Walk through the impact on the three statements.",
+    "givens": [
+      { "label": "Change in depreciation", "value": "+$10" },
+      { "label": "Tax rate", "value": "25%" },
+      { "label": "Assume", "value": "Depreciation is tax-deductible; no other changes" }
+    ],
+    "answer": [
+      "Income statement: operating income falls by $10. At a 25% tax rate, taxes fall by $2.50, so net income falls by $7.50.",
+      "Cash flow statement: net income is down $7.50, but depreciation is a non-cash charge and is added back, +$10. Cash from operations rises by $2.50, which is the tax saving.",
+      "Balance sheet: cash is up $2.50 and PP&E is down $10, so total assets fall by $7.50. Retained earnings fall by $7.50 with net income, so both sides fall by $7.50 and the balance sheet balances."
+    ],
+    "conceptIds": ["c-three-statements", "c-non-cash-charges", "c-tax-shield"],
+    "tables": [
+      {
+        "title": "Change by statement",
+        "unit": "$",
+        "columns": ["Change"],
+        "rows": [
+          { "label": "Depreciation", "values": [10] },
+          { "label": "Operating income", "values": [-10] },
+          { "label": "Taxes (25%)", "values": [-2.5] },
+          { "label": "Net income", "values": [-7.5], "style": "subtotal" },
+          { "label": "Add back depreciation", "values": [10] },
+          { "label": "Cash from operations", "values": [2.5], "style": "subtotal" },
+          { "label": "Cash", "values": [2.5] },
+          { "label": "PP&E, net", "values": [-10] },
+          { "label": "Total assets", "values": [-7.5], "style": "subtotal" },
+          { "label": "Retained earnings", "values": [-7.5] },
+          { "label": "Total liabilities and equity", "values": [-7.5], "style": "total" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "s-lbo-001",
+    "kind": "scenario",
+    "topic": "LBO",
+    "title": "Simple LBO returns",
+    "prompt": "A sponsor buys a company at 10.0x EBITDA, funded 60% with debt. Five years later it exits at the same multiple. What are the MOIC and IRR?",
+    "givens": [
+      { "label": "Entry EBITDA", "value": "$100m" },
+      { "label": "Entry and exit multiple", "value": "10.0x EV/EBITDA" },
+      { "label": "Debt at entry", "value": "60% of purchase price" },
+      { "label": "Exit EBITDA (year 5)", "value": "$150m" },
+      { "label": "Net debt at exit", "value": "$300m" },
+      { "label": "Assume", "value": "No fees, no dividends" }
+    ],
+    "answer": [
+      "Entry: enterprise value is $100m × 10.0x = $1,000m. Debt is $600m, so the sponsor invests $400m of equity.",
+      "Exit: enterprise value is $150m × 10.0x = $1,500m. Subtracting $300m of net debt leaves $1,200m of equity.",
+      "MOIC is $1,200m ÷ $400m = 3.0x. Over five years, IRR is 3.0^(1/5) − 1 ≈ 24.6%.",
+      "Rule of thumb: 2.0x over five years is about 15%, 2.5x about 20%, and 3.0x about 25%."
+    ],
+    "conceptIds": ["c-lbo", "c-irr-moic", "c-net-debt"],
+    "formulas": [
+      { "label": "MOIC", "expression": "Exit equity ÷ Entry equity" },
+      { "label": "IRR", "expression": "MOIC^(1 ÷ years) − 1" }
+    ],
+    "tables": [
+      {
+        "title": "Sources of value",
+        "unit": "$m",
+        "columns": ["Entry", "Exit"],
+        "rows": [
+          { "label": "EBITDA", "values": [100, 150] },
+          { "label": "EV/EBITDA", "values": [10, 10], "format": "multiple" },
+          { "label": "Enterprise value", "values": [1000, 1500], "style": "subtotal" },
+          { "label": "Less: net debt", "values": [-600, -300] },
+          { "label": "Equity value", "values": [400, 1200], "style": "total" }
+        ]
+      },
+      {
+        "title": "Returns",
+        "columns": ["Result"],
+        "rows": [
+          { "label": "MOIC", "values": [3], "format": "multiple" },
+          { "label": "IRR", "values": [0.246], "format": "percent" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "s-ma-001",
+    "kind": "scenario",
+    "topic": "M&A",
+    "title": "All-stock acquisition",
+    "prompt": "An acquirer buys a target for $600m, paid entirely in new acquirer shares. Is the deal accretive or dilutive to the acquirer's EPS?",
+    "givens": [
+      { "label": "Acquirer net income", "value": "$200m" },
+      { "label": "Acquirer shares outstanding", "value": "100m" },
+      { "label": "Acquirer share price", "value": "$30.00" },
+      { "label": "Target net income", "value": "$50m" },
+      { "label": "Purchase price", "value": "$600m, all stock" },
+      { "label": "Assume", "value": "No synergies, fees or purchase accounting adjustments" }
+    ],
+    "answer": [
+      "Standalone acquirer EPS is $200m ÷ 100m = $2.00.",
+      "The acquirer issues $600m ÷ $30.00 = 20m new shares, giving 120m pro forma shares.",
+      "Pro forma net income is $200m + $50m = $250m, so pro forma EPS is $250m ÷ 120m ≈ $2.08. The deal is about 4.2% accretive.",
+      "Shortcut: in an all-stock deal, it is accretive when the acquirer's P/E (15.0x) is higher than the P/E paid for the target ($600m ÷ $50m = 12.0x)."
+    ],
+    "conceptIds": ["c-accretion-dilution", "c-equity-value"],
+    "formulas": [
+      { "label": "New shares issued", "expression": "Purchase price ÷ Acquirer share price" },
+      { "label": "Accretion / (dilution)", "expression": "Pro forma EPS ÷ Standalone EPS − 1" }
+    ],
+    "tables": [
+      {
+        "title": "Pro forma EPS",
+        "unit": "$m, except per share",
+        "columns": ["Acquirer", "Target", "Pro forma"],
+        "rows": [
+          { "label": "Net income", "values": [200, 50, 250] },
+          { "label": "Shares outstanding (m)", "values": [100, null, 120] },
+          { "label": "EPS ($)", "values": [2.0, null, 2.083], "style": "subtotal" },
+          { "label": "Accretion / (dilution)", "values": [null, null, 0.042], "format": "percent", "style": "total" }
+        ]
+      }
+    ]
+  }
+]
