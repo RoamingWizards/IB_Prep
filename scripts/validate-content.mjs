@@ -1,6 +1,7 @@
 // Validate a content pack without opening the app:  npm run validate-content -- path/to/pack.json
-// Concept references may point to concepts in the pack or in the bundled content (src/content/concepts.json).
-import { readFileSync } from "node:fs"
+// References (concepts, multiple-choice questions, stage IDs) may point into the pack itself or into the
+// content bundled with the app (src/content/concepts.json and src/content/packs/*.json).
+import { readdirSync, readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { parsePack } from "../src/content/validate.ts"
@@ -12,8 +13,19 @@ if (!file) {
   process.exit(2)
 }
 
-const bundled = JSON.parse(readFileSync(join(root, "src/content/concepts.json"), "utf8"))
-const result = parsePack(readFileSync(file, "utf8"), new Set(bundled.map((c) => c.id)))
+const read = (path) => JSON.parse(readFileSync(path, "utf8"))
+const conceptIds = new Set(read(join(root, "src/content/concepts.json")).map((c) => c.id))
+const choiceIds = new Set()
+const stageOwners = new Map()
+const packsDir = join(root, "src/content/packs")
+for (const name of readdirSync(packsDir).filter((n) => n.endsWith(".json"))) {
+  const bundled = read(join(packsDir, name))
+  for (const c of bundled.concepts ?? []) conceptIds.add(c.id)
+  for (const c of bundled.multipleChoice ?? []) choiceIds.add(c.id)
+  for (const p of bundled.processes ?? []) for (const st of p.stages) stageOwners.set(st.id, p.id)
+}
+
+const result = parsePack(readFileSync(file, "utf8"), { conceptIds, choiceIds, stageOwners })
 
 if (!result.ok) {
   console.error(`INVALID: ${file}`)
@@ -22,6 +34,6 @@ if (!result.ok) {
 }
 const { pack, warnings } = result
 console.log(
-  `VALID: ${file}\n  contentVersion ${pack.contentVersion} · ${pack.concepts.length} concepts · ${pack.questions.length} questions · ${pack.scenarios.length} scenarios`,
+  `VALID: ${file}\n  contentVersion ${pack.contentVersion} · ${pack.concepts.length} concepts · ${pack.questions.length} questions · ${pack.scenarios.length} scenarios · ${pack.multipleChoice.length} multiple-choice · ${pack.processes.length} processes`,
 )
 for (const w of warnings) console.log(`  warning: ${w}`)

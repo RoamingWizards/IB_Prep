@@ -1,7 +1,8 @@
 import { createContext, useContext } from "react"
 import type { ImportRecord } from "./store.ts"
 import type { Preview } from "./merge.ts"
-import type { Bank, Concept, ContentPack, Exercise, ExerciseKind } from "./types.ts"
+import type { KnownIds } from "./validate.ts"
+import type { Bank, Concept, ContentPack, Exercise, ExerciseKind, MultipleChoice, Process } from "./types.ts"
 
 export interface ContentApi {
   /** Bundled content with imports layered on top. */
@@ -13,8 +14,10 @@ export interface ContentApi {
   exercisesFor: (kind: ExerciseKind) => Exercise[]
   exercisesById: Map<string, Exercise>
   conceptsById: Map<string, Concept>
-  /** Concept IDs available for validating a pack's references. */
-  knownConceptIds: Set<string>
+  choicesById: Map<string, MultipleChoice>
+  processesById: Map<string, Process>
+  /** Concept, multiple-choice and stage IDs available for validating a pack's references. */
+  known: KnownIds
   /** What a validated pack would add or update. Writes nothing. */
   preview: (pack: ContentPack) => Preview
   /** Stores a validated pack atomically. Rejects (leaving stored content unchanged) if anything fails. */

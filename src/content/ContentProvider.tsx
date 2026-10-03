@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import { BUNDLED_CONTENT_VERSION, bundledBank } from "./bundled.ts"
 import { ContentContext, type ContentApi } from "./contentContext.ts"
-import { bankToPack, diffPack, mergeBank } from "./merge.ts"
+import { bankToPack, diffPack, knownIds, mergeBank } from "./merge.ts"
 import { applyImport, EMPTY_STORED, loadStored, type StoredBundle } from "./store.ts"
 import type { ContentPack } from "./types.ts"
 
@@ -40,12 +40,18 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     () => ({
       bank,
       contentVersion,
-      importedItemCount: (stored?.concepts.length ?? 0) + (stored?.exercises.length ?? 0),
+      importedItemCount:
+        (stored?.concepts.length ?? 0) +
+        (stored?.exercises.length ?? 0) +
+        (stored?.choices.length ?? 0) +
+        (stored?.processes.length ?? 0),
       imports: stored?.imports ?? [],
       exercisesFor: (kind) => (kind === "question" ? bank.questions : bank.scenarios),
       exercisesById: new Map([...bank.questions, ...bank.scenarios].map((e) => [e.id, e])),
       conceptsById: new Map(bank.concepts.map((c) => [c.id, c])),
-      knownConceptIds: new Set(bank.concepts.map((c) => c.id)),
+      choicesById: new Map(bank.multipleChoice.map((c) => [c.id, c])),
+      processesById: new Map(bank.processes.map((p) => [p.id, p])),
+      known: knownIds(bank),
       preview: (pack) => diffPack(pack, bank),
       commit,
       exportPack: () => bankToPack(bank, contentVersion, new Date().toISOString()),

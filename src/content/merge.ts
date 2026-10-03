@@ -1,5 +1,6 @@
 // Combining bundled content with imported content, and previewing what a pack would change.
-import type { Bank, Concept, ContentPack, Exercise, ExerciseKind } from "./types.ts"
+import type { KnownIds } from "./validate.ts"
+import type { Bank, Concept, ContentPack, Exercise, ExerciseKind, MultipleChoice, Process } from "./types.ts"
 
 /** An imported item as stored. `seq` keeps the order items were first added in. */
 export interface StoredItem<T> {
@@ -11,6 +12,8 @@ export interface StoredItem<T> {
 export interface StoredContent {
   concepts: StoredItem<Concept>[]
   exercises: StoredItem<Exercise>[]
+  choices: StoredItem<MultipleChoice>[]
+  processes: StoredItem<Process>[]
 }
 
 function overlay<T extends { id: string }>(bundled: T[], stored: StoredItem<T>[]): T[] {
@@ -29,6 +32,19 @@ export function mergeBank(bundled: Bank, stored: StoredContent): Bank {
     concepts: overlay(bundled.concepts, stored.concepts),
     questions: overlay(bundled.questions, questions),
     scenarios: overlay(bundled.scenarios, scenarios),
+    multipleChoice: overlay(bundled.multipleChoice, stored.choices),
+    processes: overlay(bundled.processes, stored.processes),
+  }
+}
+
+/** The IDs a new pack may refer to: everything already in the bank. */
+export function knownIds(bank: Bank): KnownIds {
+  const stageOwners = new Map<string, string>()
+  for (const p of bank.processes) for (const st of p.stages) stageOwners.set(st.id, p.id)
+  return {
+    conceptIds: new Set(bank.concepts.map((c) => c.id)),
+    choiceIds: new Set(bank.multipleChoice.map((c) => c.id)),
+    stageOwners,
   }
 }
 
@@ -42,7 +58,7 @@ export function deepEqual(a: unknown, b: unknown): boolean {
   return ka.every((k) => k in b && deepEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]))
 }
 
-export type ItemType = "question" | "scenario" | "concept"
+export type ItemType = "question" | "scenario" | "concept" | "choice" | "process"
 export type ChangeStatus = "add" | "update" | "unchanged"
 
 export interface PreviewItem {
@@ -52,6 +68,8 @@ export interface PreviewItem {
   label: string
   category?: string
   subcategory?: string
+  /** Extra context, for example how many stages a process has. */
+  detail?: string
   /** For updates: the fields whose values differ from what is stored now. */
   changedFields?: string[]
 }
@@ -77,7 +95,7 @@ export function diffPack(pack: ContentPack, bank: Bank): Preview {
     list: T[] | undefined,
     existing: T[],
     type: ItemType,
-    describe: (t: T) => Pick<PreviewItem, "label" | "category" | "subcategory">,
+    describe: (t: T) => Pick<PreviewItem, "label" | "category" | "subcategory" | "detail">,
   ) => {
     const byId = new Map(existing.map((e) => [e.id, e]))
     for (const next of list ?? []) {
@@ -92,6 +110,15 @@ export function diffPack(pack: ContentPack, bank: Bank): Preview {
   compare(pack.concepts, bank.concepts, "concept", (c) => ({ label: c.name }))
   compare(pack.questions, bank.questions, "question", exerciseInfo)
   compare(pack.scenarios, bank.scenarios, "scenario", exerciseInfo)
+  compare(pack.multipleChoice, bank.multipleChoice, "choice", (c) => ({
+    label: c.title,
+    category: c.category,
+    subcategory: c.subcategory,
+  }))
+  compare(pack.processes, bank.processes, "process", (p) => ({
+    label: p.title,
+    detail: `${p.stages.length} ${p.stages.length === 1 ? "stage" : "stages"}`,
+  }))
 
   const newTopics: Preview["newTopics"] = []
   for (const [kind, list, existing] of [
@@ -122,5 +149,7 @@ export function bankToPack(bank: Bank, contentVersion: string, exportedAt: strin
     concepts: bank.concepts,
     questions: bank.questions,
     scenarios: bank.scenarios,
+    multipleChoice: bank.multipleChoice,
+    processes: bank.processes,
   }
 }

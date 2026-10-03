@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "sample-2",
+  "title": "M&A sell-side deal walk",
+  "description": "Six multiple-choice stages following a sell-side M&A process.",
+  "concepts": [
+    {
+      "id": "c-sell-side-process",
+      "name": "Sell-side process",
+      "summary": "The structured sequence a seller and its advisers run to market a company, collect bids and sign a sale, usually in two rounds."
+    },
+    {
+      "id": "c-nda",
+      "name": "Non-disclosure agreement",
+      "summary": "A confidentiality agreement a prospective buyer signs before receiving non-public information about the target."
+    },
+    {
+      "id": "c-cim",
+      "name": "Confidential information memorandum",
+      "summary": "The detailed marketing document (CIM) describing the business, market and financials, shared with buyers after they sign an NDA."
+    },
+    {
+      "id": "c-ioi",
+      "name": "Indication of interest",
+      "summary": "A non-binding first-round bid giving a valuation range and key assumptions, used to choose which buyers move forward."
+    },
+    {
+      "id": "c-due-diligence",
+      "name": "Due diligence",
+      "summary": "The buyer's detailed review of the target's business, financials, legal and other matters, usually through a virtual data room."
+    },
+    {
+      "id": "c-purchase-agreement",
+      "name": "Purchase agreement",
+      "summary": "The legal contract for the sale, covering price, representations, indemnities and conditions to closing."
+    },
+    {
+      "id": "c-closing-conditions",
+      "name": "Closing conditions",
+      "summary": "Requirements, such as regulatory approvals, that must be satisfied before a signed deal can close."
+    }
+  ],
+  "multipleChoice": [
+    {
+      "id": "mc-ma-ss-001",
+      "category": "M&A",
+      "subcategory": "Sell-side process",
+      "title": "First steps of a sale",
+      "prompt": "A private company has decided to sell itself and hires an investment bank. Which work normally comes first, before any buyer is contacted?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Sending the confidential information memorandum to every potential buyer"
+        },
+        {
+          "id": "b",
+          "text": "Agreeing the engagement, then preparing valuation analysis, a teaser, the information memorandum and a list of potential buyers"
+        },
+        {
+          "id": "c",
+          "text": "Asking bidders to submit final binding offers"
+        },
+        {
+          "id": "d",
+          "text": "Signing the purchase agreement with the most likely buyer"
+        }
+      ],
+      "correctOptionId": "b",
+      "explanation": [
+        "A sale starts with preparation. The bank is engaged, analyses the company's value, and builds the marketing materials: a short anonymous teaser, the detailed information memorandum and a buyer list.",
+        "Only once these are ready does outreach begin. Offers and contracts come much later."
+      ],
+      "conceptIds": [
+        "c-sell-side-process",
+        "c-cim"
+      ]
+    },
+    {
+      "id": "mc-ma-ss-002",
+      "category": "M&A",
+      "subcategory": "Sell-side process",
+      "title": "Teaser and confidentiality",
+      "prompt": "The bank sends an anonymous teaser to potential buyers and one of them wants to read the detailed information memorandum. What must it normally do first?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Submit a binding offer"
+        },
+        {
+          "id": "b",
+          "text": "Complete full due diligence"
+        },
+        {
+          "id": "c",
+          "text": "Sign a non-disclosure agreement"
+        },
+        {
+          "id": "d",
+          "text": "Pay a deposit to the seller"
+        }
+      ],
+      "correctOptionId": "c",
+      "explanation": [
+        "The teaser is a short summary that does not name the company. Confidential details, including the information memorandum, are shared only after the buyer signs a non-disclosure agreement.",
+        "Binding offers and full diligence come much later, after the buyer has seen the memorandum."
+      ],
+      "conceptIds": [
+        "c-nda",
+        "c-cim"
+      ]
+    },
+    {
+      "id": "mc-ma-ss-003",
+      "category": "M&A",
+      "subcategory": "Sell-side process",
+      "title": "First-round bids",
+      "prompt": "After reading the information memorandum, interested buyers submit first-round indications of interest. What are these typically?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Legally binding offers that the seller must accept"
+        },
+        {
+          "id": "b",
+          "text": "The signed purchase agreement"
+        },
+        {
+          "id": "c",
+          "text": "Regulatory filings for the transaction"
+        },
+        {
+          "id": "d",
+          "text": "Non-binding indications of a valuation range and key assumptions"
+        }
+      ],
+      "correctOptionId": "d",
+      "explanation": [
+        "Indications of interest are non-binding. They give a price range and the main assumptions behind it, so the seller can decide which buyers to invite into the next round.",
+        "Binding offers come at the end of the process, after due diligence."
+      ],
+      "conceptIds": [
+        "c-ioi",
+        "c-sell-side-process"
+      ]
+    },
+    {
+      "id": "mc-ma-ss-004",
+      "category": "M&A",
+      "subcategory": "Sell-side process",
+      "title": "Diligence and management meetings",
+      "prompt": "A shortlist of bidders moves into the second round. Which activity usually takes place in this stage?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Management presentations and access to a virtual data room for due diligence"
+        },
+        {
+          "id": "b",
+          "text": "Writing the teaser for the first time"
+        },
+        {
+          "id": "c",
+          "text": "Closing the transaction and transferring the shares"
+        },
+        {
+          "id": "d",
+          "text": "Choosing the investment bank to sell the company"
+        }
+      ],
+      "correctOptionId": "a",
+      "explanation": [
+        "Shortlisted bidders meet management and review detailed information, usually in a virtual data room, so they can confirm their valuation and prepare a final bid.",
+        "The teaser and bank selection happen earlier, and closing happens after signing."
+      ],
+      "conceptIds": [
+        "c-due-diligence",
+        "c-sell-side-process"
+      ]
+    },
+    {
+      "id": "mc-ma-ss-005",
+      "category": "M&A",
+      "subcategory": "Sell-side process",
+      "title": "Final bids",
+      "prompt": "Final bids often come with a mark-up of the seller's draft purchase agreement. Why does the seller's bank ask for it?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Price is the only thing that matters once bids are final"
+        },
+        {
+          "id": "b",
+          "text": "So bids can be compared on terms such as indemnities, conditions and certainty of closing, not just price"
+        },
+        {
+          "id": "c",
+          "text": "Because the buyer's lawyers must write the information memorandum"
+        },
+        {
+          "id": "d",
+          "text": "It replaces the need for any due diligence"
+        }
+      ],
+      "correctOptionId": "b",
+      "explanation": [
+        "The highest headline price is not always the best bid. The mark-up shows what the buyer wants on indemnities, conditions and timing, which affects how likely the deal is to close and what the seller really receives.",
+        "It does not replace diligence, and the buyer does not write the seller's marketing materials."
+      ],
+      "conceptIds": [
+        "c-purchase-agreement",
+        "c-sell-side-process"
+      ]
+    },
+    {
+      "id": "mc-ma-ss-006",
+      "category": "M&A",
+      "subcategory": "Sell-side process",
+      "title": "Signing and closing",
+      "prompt": "A purchase agreement is signed, but the deal needs regulatory approval. What is the usual order of events?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Closing happens first, and approvals are sought afterwards"
+        },
+        {
+          "id": "b",
+          "text": "Signing and closing always happen at the same moment"
+        },
+        {
+          "id": "c",
+          "text": "Approvals are requested only after the purchase price has been paid"
+        },
+        {
+          "id": "d",
+          "text": "Signing, then the closing conditions are satisfied, including approvals, then closing"
+        }
+      ],
+      "correctOptionId": "d",
+      "explanation": [
+        "When a deal needs approvals, signing and closing are separate. After signing, the parties work to satisfy the closing conditions, such as regulatory approvals, and the deal closes once they are met.",
+        "The price is normally paid at closing, not before the approvals."
+      ],
+      "conceptIds": [
+        "c-closing-conditions",
+        "c-purchase-agreement"
+      ]
+    }
+  ],
+  "processes": [
+    {
+      "id": "p-ma-sell-side",
+      "title": "M&A sell-side process",
+      "description": "Follow a private company sale from preparing marketing materials through bids and diligence to signing and closing.",
+      "stages": [
+        {
+          "id": "ps-ma-ss-01",
+          "title": "Preparation and mandate",
+          "choiceId": "mc-ma-ss-001"
+        },
+        {
+          "id": "ps-ma-ss-02",
+          "title": "Marketing and NDAs",
+          "choiceId": "mc-ma-ss-002"
+        },
+        {
+          "id": "ps-ma-ss-03",
+          "title": "First-round bids",
+          "choiceId": "mc-ma-ss-003"
+        },
+        {
+          "id": "ps-ma-ss-04",
+          "title": "Due diligence and management meetings",
+          "choiceId": "mc-ma-ss-004"
+        },
+        {
+          "id": "ps-ma-ss-05",
+          "title": "Final bids and negotiation",
+          "choiceId": "mc-ma-ss-005"
+        },
+        {
+          "id": "ps-ma-ss-06",
+          "title": "Signing and closing",
+          "choiceId": "mc-ma-ss-006"
+        }
+      ]
+    }
+  ]
+}
