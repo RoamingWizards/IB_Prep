@@ -2,7 +2,7 @@
 // (`ib-prep-progress`). Nothing here ever reads or writes progress.
 import { openDB, type DBSchema, type IDBPDatabase } from "idb"
 import type { Preview, StoredContent, StoredItem } from "./merge.ts"
-import type { Concept, ContentPack, Exercise } from "./types.ts"
+import type { Concept, ContentPack, Exercise, MultipleChoice, Process } from "./types.ts"
 
 export interface ImportRecord {
   id?: number
@@ -22,21 +22,31 @@ export interface StoredBundle extends StoredContent {
 interface ContentDB extends DBSchema {
   concepts: { key: string; value: StoredItem<Concept> }
   exercises: { key: string; value: StoredItem<Exercise> }
+  choices: { key: string; value: StoredItem<MultipleChoice> }
+  processes: { key: string; value: StoredItem<Process> }
   imports: { key: number; value: ImportRecord }
   meta: { key: string; value: unknown }
 }
 
-export const EMPTY_STORED: StoredBundle = { concepts: [], exercises: [], contentVersion: null, imports: [] }
+export const EMPTY_STORED: StoredBundle = { concepts: [], exercises: [], choices: [], processes: [], contentVersion: null, imports: [] }
 
 let dbPromise: Promise<IDBPDatabase<ContentDB>> | null = null
 
 function db() {
-  dbPromise ??= openDB<ContentDB>("ib-prep-content", 1, {
-    upgrade(d) {
-      d.createObjectStore("concepts", { keyPath: "id" })
-      d.createObjectStore("exercises", { keyPath: "id" })
-      d.createObjectStore("imports", { keyPath: "id", autoIncrement: true })
-      d.createObjectStore("meta")
+  // Version 2 adds the stores for multiple-choice questions and processes. Upgrading only adds stores,
+  // so anything already imported into version 1 is kept as it is.
+  dbPromise ??= openDB<ContentDB>("ib-prep-content", 2, {
+    upgrade(d, oldVersion) {
+      if (oldVersion < 1) {
+        d.createObjectStore("concepts", { keyPath: "id" })
+        d.createObjectStore("exercises", { keyPath: "id" })
+        d.createObjectStore("imports", { keyPath: "id", autoIncrement: true })
+        d.createObjectStore("meta")
+      }
+      if (oldVersion < 2) {
+        d.createObjectStore("choices", { keyPath: "id" })
+        d.createObjectStore("processes", { keyPath: "id" })
+      }
     },
   })
   return dbPromise
@@ -44,13 +54,22 @@ function db() {
 
 export async function loadStored(): Promise<StoredBundle> {
   const d = await db()
-  const [concepts, exercises, imports, contentVersion] = await Promise.all([
+  const [concepts, exercises, choices, processes, imports, contentVersion] = await Promise.all([
     d.getAll("concepts"),
     d.getAll("exercises"),
+    d.getAll("choices"),
+    d.getAll("processes"),
     d.getAll("imports"),
     d.get("meta", "contentVersion"),
   ])
-  return { concepts, exercises, imports, contentVersion: typeof contentVersion === "string" ? contentVersion : null }
+  return {
+    concepts,
+    exercises,
+    choices,
+    processes,
+    imports,
+    contentVersion: typeof contentVersion === "string" ? contentVersion : null,
+  }
 }
 
 /**
@@ -59,11 +78,13 @@ export async function loadStored(): Promise<StoredBundle> {
  */
 export async function applyImport(pack: ContentPack, preview: Preview): Promise<void> {
   const d = await db()
-  const tx = d.transaction(["concepts", "exercises", "imports", "meta"], "readwrite")
+  const tx = d.transaction(["concepts", "exercises", "choices", "processes", "imports", "meta"], "readwrite")
   try {
     let seq = ((await tx.objectStore("meta").get("seq")) as number | undefined) ?? 0
     const concepts = new Map((pack.concepts ?? []).map((c) => [c.id, c]))
     const exercises = new Map([...(pack.questions ?? []), ...(pack.scenarios ?? [])].map((e) => [e.id, e]))
+    const choices = new Map((pack.multipleChoice ?? []).map((c) => [c.id, c]))
+    const processes = new Map((pack.processes ?? []).map((p) => [p.id, p]))
 
     for (const change of preview.items) {
       if (change.status === "unchanged") continue
@@ -71,6 +92,14 @@ export async function applyImport(pack: ContentPack, preview: Preview): Promise<
         const store = tx.objectStore("concepts")
         const existing = await store.get(change.id)
         await store.put({ id: change.id, seq: existing?.seq ?? ++seq, item: concepts.get(change.id)! })
+      } else if (change.type === "choice") {
+        const store = tx.objectStore("choices")
+        const existing = await store.get(change.id)
+        await store.put({ id: change.id, seq: existing?.seq ?? ++seq, item: choices.get(change.id)! })
+      } else if (change.type === "process") {
+        const store = tx.objectStore("processes")
+        const existing = await store.get(change.id)
+        await store.put({ id: change.id, seq: existing?.seq ?? ++seq, item: processes.get(change.id)! })
       } else {
         const store = tx.objectStore("exercises")
         const existing = await store.get(change.id)

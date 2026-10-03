@@ -48,6 +48,38 @@ export interface Exercise {
 }
 
 /** A content pack: the JSON file format for importing and exporting content. See docs/CONTENT_SCHEMA.md. */
+export interface ChoiceOption {
+  id: string // unique within its question, e.g. "a"
+  text: string
+}
+
+/** One multiple-choice question with a single correct option. Used by Deal Walk stages. */
+export interface MultipleChoice {
+  id: string // "mc-…"
+  category: string
+  subcategory: string
+  title: string
+  prompt: string
+  options: ChoiceOption[] // 2 to 5; shuffled when shown, so their order here carries no meaning
+  correctOptionId: string
+  explanation: string[] // paragraphs shown after submitting
+  conceptIds: string[]
+}
+
+export interface ProcessStage {
+  id: string // "ps-…", unique across all processes
+  title: string
+  choiceId: string // the multiple-choice question asked at this stage
+}
+
+/** A deal process walked stage by stage. The order of `stages` is the order shown. */
+export interface Process {
+  id: string // "p-…"
+  title: string
+  description?: string
+  stages: ProcessStage[]
+}
+
 export interface ContentPack {
   schemaVersion: number
   contentVersion: string
@@ -57,6 +89,8 @@ export interface ContentPack {
   concepts?: Concept[]
   questions?: Exercise[]
   scenarios?: Exercise[]
+  multipleChoice?: MultipleChoice[]
+  processes?: Process[]
 }
 
 /** All content available to the app at one time. */
@@ -64,4 +98,6 @@ export interface Bank {
   concepts: Concept[]
   questions: Exercise[]
   scenarios: Exercise[]
+  multipleChoice: MultipleChoice[]
+  processes: Process[]
 }

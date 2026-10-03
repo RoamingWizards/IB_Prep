@@ -14,7 +14,13 @@ type Stage =
   | { kind: "preview"; fileName: string; pack: ContentPack; preview: Preview; warnings: string[] }
   | { kind: "done"; message: string }
 
-const TYPE_LABEL: Record<ItemType, string> = { question: "Question", scenario: "Scenario", concept: "Concept" }
+const TYPE_LABEL: Record<ItemType, string> = {
+  question: "Question",
+  scenario: "Scenario",
+  concept: "Concept",
+  choice: "Multiple choice",
+  process: "Process",
+}
 const MAX_LISTED_ERRORS = 50
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
 
@@ -36,6 +42,7 @@ function ChangeList({ title, items }: { title: string; items: PreviewItem[] }) {
                 {item.category} › {item.subcategory}
               </span>
             )}
+            {item.detail && <span className="text-muted-foreground">{item.detail}</span>}
             {item.changedFields && (
               <span className="text-muted-foreground">changes: {item.changedFields.join(", ")}</span>
             )}
@@ -70,7 +77,7 @@ export function ContentSettings() {
     } catch {
       return reject(["The file could not be read."])
     }
-    const result = parsePack(text, content.knownConceptIds)
+    const result = parsePack(text, content.known)
     if (!result.ok) return reject(result.errors)
     setStage({ kind: "preview", fileName: file.name, pack: result.pack, warnings: result.warnings, preview: content.preview(result.pack) })
   }
@@ -108,7 +115,9 @@ export function ContentSettings() {
     link.click()
     link.remove()
     window.setTimeout(() => URL.revokeObjectURL(url), 1000)
-    setNote(`Exported ${plural(pack.questions?.length ?? 0, "question")}, ${plural(pack.scenarios?.length ?? 0, "scenario")} and ${plural(pack.concepts?.length ?? 0, "concept")}.`)
+    setNote(
+      `Exported ${plural(pack.questions?.length ?? 0, "question")}, ${plural(pack.scenarios?.length ?? 0, "scenario")}, ${plural(pack.multipleChoice?.length ?? 0, "multiple-choice question")}, ${plural(pack.processes?.length ?? 0, "process", "processes")} and ${plural(pack.concepts?.length ?? 0, "concept")}.`,
+    )
   }
 
   const changes = stage.kind === "preview" ? stage.preview : null
@@ -121,7 +130,8 @@ export function ContentSettings() {
           <h2 className="text-lg font-medium">Content</h2>
           <p className="mt-1 text-sm text-muted-foreground" data-testid="content-summary">
             Version {content.contentVersion} · {plural(bank.questions.length, "question")} ·{" "}
-            {plural(bank.scenarios.length, "scenario")} · {plural(bank.concepts.length, "concept")}
+            {plural(bank.scenarios.length, "scenario")} · {plural(bank.multipleChoice.length, "multiple-choice question")} ·{" "}
+            {plural(bank.processes.length, "process", "processes")} · {plural(bank.concepts.length, "concept")}
             {content.importedItemCount > 0 && ` · ${plural(content.importedItemCount, "item")} from imports`}
           </p>
           {last && (

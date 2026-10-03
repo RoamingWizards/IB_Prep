@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
-import { BookOpen, History, ListChecks, Menu, Settings } from "lucide-react"
+import { BookOpen, History, ListChecks, Menu, Route, Settings } from "lucide-react"
 import { Panel } from "@/components/kit"
+import { DealWalksView } from "@/views/DealWalksView"
 import { StudyView } from "@/views/StudyView"
 import { HistoryView } from "@/views/HistoryView"
 import { SettingsView } from "@/views/SettingsView"
@@ -8,11 +9,12 @@ import { useShortcutHandlers } from "@/lib/keybindsContext"
 import { getMeta, setMeta } from "@/lib/db"
 import { cn } from "@/lib/utils"
 
-type Tab = "questions" | "scenarios" | "history" | "settings"
+type Tab = "questions" | "scenarios" | "deals" | "history" | "settings"
 
 const NAV: { id: Tab; label: string; icon: typeof BookOpen }[] = [
   { id: "questions", label: "Questions", icon: BookOpen },
   { id: "scenarios", label: "Scenarios", icon: ListChecks },
+  { id: "deals", label: "Deal Walks", icon: Route },
   { id: "history", label: "History", icon: History },
   { id: "settings", label: "Settings", icon: Settings },
 ]
@@ -99,9 +101,10 @@ export default function App() {
         )}
       >
         {/* Study fills the window exactly (the card scrolls long answers itself); other pages scroll. */}
-        <div className={cn("flex flex-col", tab === "questions" || tab === "scenarios" ? "h-full" : "min-h-full")}>
+        <div className={cn("flex flex-col", tab === "questions" || tab === "scenarios" || tab === "deals" ? "h-full" : "min-h-full")}>
           {ready && tab === "questions" && <StudyView key="question" kind="question" />}
           {ready && tab === "scenarios" && <StudyView key="scenario" kind="scenario" />}
+          {ready && tab === "deals" && <DealWalksView />}
           {ready && tab === "history" && <HistoryView />}
           {ready && tab === "settings" && <SettingsView />}
         </div>
