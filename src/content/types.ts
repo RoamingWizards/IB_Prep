@@ -36,7 +36,8 @@ export interface Given {
 export interface Exercise {
   id: string // e.g. "q-ev-001", "s-3s-001"
   kind: ExerciseKind
-  topic: string
+  category: string // broad area, e.g. "Valuation". Topic selectors are derived from this and subcategory.
+  subcategory: string // narrower topic within the category, e.g. "DCF"
   title: string
   prompt: string
   givens?: Given[] // facts shown with the prompt (scenarios)

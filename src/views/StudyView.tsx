@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { ListFilter } from "lucide-react"
 import { Flashcard } from "@/components/Flashcard"
 import { GradeBar, type GradeFeedback } from "@/components/GradeBar"
+import { SessionFilters } from "@/components/SessionFilters"
 import { GlowButton, Panel, ProgressBar, SlideStage, useSlideSequence } from "@/components/kit"
 import { FLIP_MS, prefersReducedMotion } from "@/components/kit/motion"
 import { exercisesById, exercisesFor } from "@/content"
@@ -13,7 +15,16 @@ import {
   type Session,
 } from "@/lib/db"
 import { useShortcutHandlers } from "@/lib/keybindsContext"
-import { buildPracticeQueue, buildQueue, countDue, nextState } from "@/lib/scheduler"
+import { nextState } from "@/lib/scheduler"
+import {
+  activeFilterCount,
+  buildSelectionQueue,
+  DEFAULT_SELECTION,
+  loadSelection,
+  masteryCounts,
+  saveSelection,
+  type Selection,
+} from "@/lib/selection"
 
 const LABEL: Record<ExerciseKind, string> = {
   question: "Questions",
@@ -29,6 +40,8 @@ export function StudyView({ kind }: { kind: ExerciseKind }) {
   const [revealed, setRevealed] = useState(false)
   const [done, setDone] = useState(0)
   const [busy, setBusy] = useState(false)
+  const [selection, setSelection] = useState<Selection>(DEFAULT_SELECTION)
+  const [panelOpen, setPanelOpen] = useState(false)
   const [feedback, setFeedback] = useState<GradeFeedback | null>(null)
   const session = useRef<Session | null>(null)
   const busyRef = useRef(false) // synchronous lock; state alone would lag behind rapid input
@@ -36,11 +49,11 @@ export function StudyView({ kind }: { kind: ExerciseKind }) {
   const timers = useRef<number[]>([])
   const slide = useSlideSequence()
 
-  const start = useCallback(
-    (practice: boolean, loaded: Map<string, CardState>) => {
-      const ids = exercisesFor(kind).map((e) => e.id)
+  /** (Re)builds the queue for a selection and starts a fresh session. */
+  const begin = useCallback(
+    (sel: Selection, loaded: Map<string, CardState>) => {
       setStates(loaded)
-      setQueue(practice ? buildPracticeQueue(ids, loaded) : buildQueue(ids, loaded))
+      setQueue(buildSelectionQueue(exercisesFor(kind), sel, loaded))
       setPosition(0)
       setDone(0)
       setRevealed(false)
@@ -51,15 +64,28 @@ export function StudyView({ kind }: { kind: ExerciseKind }) {
 
   useEffect(() => {
     let cancelled = false
-    getAllCardStates().then((loaded) => {
-      if (!cancelled) start(false, loaded)
+    Promise.all([getAllCardStates(), loadSelection(kind, exercisesFor(kind))]).then(([loaded, sel]) => {
+      if (cancelled) return
+      setSelection(sel)
+      begin(sel, loaded)
     })
     const pending = timers.current
     return () => {
       cancelled = true
       pending.forEach(window.clearTimeout)
     }
-  }, [start])
+  }, [begin, kind])
+
+  const applySelection = useCallback(
+    (sel: Selection) => {
+      if (!states || busyRef.current) return
+      setSelection(sel)
+      void saveSelection(kind, sel)
+      setPanelOpen(false)
+      begin(sel, states)
+    },
+    [states, kind, begin],
+  )
 
   const currentId = queue[position]
   const exercise = currentId ? exercisesById.get(currentId) : undefined
@@ -137,64 +163,125 @@ export function StudyView({ kind }: { kind: ExerciseKind }) {
   )
 
   // Shortcuts come from the shared handler (see KeybindsProvider), using the user's bindings.
+  // They pause while the session options panel is open.
   useShortcutHandlers({
-    flip: toggleFlip,
-    again: () => void submit("again"),
-    hard: () => void submit("hard"),
-    good: () => void submit("good"),
-    easy: () => void submit("easy"),
+    flip: () => !panelOpen && toggleFlip(),
+    again: () => !panelOpen && void submit("again"),
+    hard: () => !panelOpen && void submit("hard"),
+    good: () => !panelOpen && void submit("good"),
+    easy: () => !panelOpen && void submit("easy"),
   })
 
   if (!states) return null
 
+  const exercises = exercisesFor(kind)
   const remaining = queue.length - position
+  const total = done + remaining
+  const activeFilters = activeFilterCount(selection)
+
+  const filtersButton = (
+    <GlowButton
+      className="h-8 gap-1.5 px-3 text-sm"
+      data-testid="filters-button"
+      aria-haspopup="dialog"
+      aria-expanded={panelOpen}
+      disabled={busy}
+      onClick={() => setPanelOpen((o) => !o)}
+      onMouseUp={(e) => e.currentTarget.blur()}
+    >
+      <ListFilter className="size-4" aria-hidden />
+      Filters
+      {activeFilters > 0 && (
+        <span className="rounded-full bg-primary/25 px-1.5 text-xs text-[#cfe0ff]" data-testid="filters-count">
+          {activeFilters}
+        </span>
+      )}
+    </GlowButton>
+  )
+
+  const header = (
+    <header className="relative z-20 shrink-0 space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <p className="flex min-w-0 items-center gap-2 text-sm font-medium">
+          <span className="size-2 shrink-0 rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" aria-hidden />
+          {exercise ? (
+            <span className="truncate">
+              {exercise.category}
+              <span className="font-normal text-muted-foreground">
+                {"  "}
+                {exercise.subcategory} · {LABEL[kind]}
+              </span>
+            </span>
+          ) : (
+            LABEL[kind]
+          )}
+        </p>
+        <div className="flex items-center gap-4">
+          {exercise && (
+            <p className="text-sm text-muted-foreground tabular-nums" data-testid="progress">
+              Card {done + 1} of {total}
+            </p>
+          )}
+          {filtersButton}
+        </div>
+      </div>
+      {exercise && <ProgressBar value={done} max={total} label={`${LABEL[kind]} progress`} />}
+      {panelOpen && (
+        <SessionFilters
+          exercises={exercises}
+          states={states}
+          selection={selection}
+          onApply={applySelection}
+          onClose={() => setPanelOpen(false)}
+        />
+      )}
+    </header>
+  )
 
   if (!exercise) {
-    const ids = exercisesFor(kind).map((e) => e.id)
-    const c = countDue(ids, states)
+    const counts = masteryCounts(exercises, selection, states)
     return (
-      <div className="m-auto w-full max-w-xl" data-testid="queue-empty">
-        <Panel glow="blue" className="p-8">
-          <h1 className="font-serif text-2xl font-semibold">
-            {done > 0 ? "Session complete" : "Nothing due"}
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            {done > 0
-              ? `You reviewed ${done} ${done === 1 ? "card" : "cards"}. Results are saved in History.`
-              : "Every card is scheduled for later. You can still practise, weakest cards first."}
-          </p>
-          <div className="mt-6 flex gap-3">
-            <GlowButton tone="blue" solid className="h-10 px-4" onClick={() => start(true, states)}>
-              Practise all cards
-            </GlowButton>
-            {c.total > 0 && (
-              <GlowButton className="h-10 px-4" onClick={() => start(false, states)}>
-                Review due cards
+      <div className="flex h-full min-h-0 flex-col gap-4">
+        {header}
+        <div className="m-auto w-full max-w-xl" data-testid="queue-empty">
+          <Panel glow="blue" className="p-8">
+            <h1 className="font-serif text-2xl font-semibold">
+              {done > 0 ? "Session complete" : selection.mastery === "due" ? "Nothing due" : "No cards match"}
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+              {done > 0
+                ? `You reviewed ${done} ${done === 1 ? "card" : "cards"}. Results are saved in History.`
+                : selection.mastery === "due"
+                  ? "Every card in this selection is scheduled for later. You can still practise, weakest cards first."
+                  : "No cards fit these filters. Change the topic or mastery filter to see more."}
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <GlowButton
+                tone="blue"
+                solid
+                className="h-10 px-4"
+                onClick={() => applySelection({ ...selection, mastery: "all" })}
+              >
+                Practise all cards
               </GlowButton>
-            )}
-          </div>
-        </Panel>
+              {counts.due > 0 && (
+                <GlowButton className="h-10 px-4" onClick={() => applySelection({ ...selection, mastery: "due" })}>
+                  Review due cards
+                </GlowButton>
+              )}
+              <GlowButton className="h-10 px-4" onClick={() => setPanelOpen(true)}>
+                Change filters
+              </GlowButton>
+            </div>
+          </Panel>
+        </div>
       </div>
     )
   }
 
-  const total = done + remaining
-
   return (
     <div className="flex h-full min-h-0 flex-col gap-4">
-      <header className="shrink-0 space-y-3">
-        <div className="flex items-baseline justify-between gap-4">
-          <p className="flex items-center gap-2 text-sm font-medium">
-            <span className="size-2 rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" aria-hidden />
-            {exercise.topic}
-            <span className="font-normal text-muted-foreground">{LABEL[kind]}</span>
-          </p>
-          <p className="text-sm text-muted-foreground tabular-nums" data-testid="progress">
-            Card {done + 1} of {total}
-          </p>
-        </div>
-        <ProgressBar value={done} max={total} label={`${LABEL[kind]} progress`} />
-      </header>
+      {header}
 
       <SlideStage
         stageRef={slide.stageRef}

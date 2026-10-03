@@ -2,7 +2,8 @@
   {
     "id": "s-3s-001",
     "kind": "scenario",
-    "topic": "Accounting",
+    "category": "Accounting",
+    "subcategory": "Three statements",
     "title": "Depreciation rises by $10",
     "prompt": "Depreciation increases by $10. Walk through the impact on the three statements.",
     "givens": [
@@ -40,7 +41,8 @@
   {
     "id": "s-lbo-001",
     "kind": "scenario",
-    "topic": "LBO",
+    "category": "LBO",
+    "subcategory": "Returns",
     "title": "Simple LBO returns",
     "prompt": "A sponsor buys a company at 10.0x EBITDA, funded 60% with debt. Five years later it exits at the same multiple. What are the MOIC and IRR?",
     "givens": [
@@ -88,7 +90,8 @@
   {
     "id": "s-ma-001",
     "kind": "scenario",
-    "topic": "M&A",
+    "category": "M&A",
+    "subcategory": "Accretion and dilution",
     "title": "All-stock acquisition",
     "prompt": "An acquirer buys a target for $600m, paid entirely in new acquirer shares. Is the deal accretive or dilutive to the acquirer's EPS?",
     "givens": [

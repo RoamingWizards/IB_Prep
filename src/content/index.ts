@@ -23,6 +23,7 @@ if (import.meta.env.DEV) {
     console.error("Duplicate exercise IDs in content")
   }
   for (const e of all) {
+    if (!e.category || !e.subcategory) console.error(`Exercise ${e.id} needs a category and subcategory`)
     for (const cid of e.conceptIds) {
       if (!conceptsById.has(cid)) {
         console.error(`Exercise ${e.id} references unknown concept ${cid}`)
