@@ -38,7 +38,7 @@ export function HistoryView() {
   const { sessions, attempts } = data
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-5xl space-y-6">
       <h1 className="font-serif text-2xl font-semibold">History</h1>
 
       {sessions.length === 0 ? (
