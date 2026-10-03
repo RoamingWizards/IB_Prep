@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { exercisesById } from "@/content"
+import { useContent } from "@/content/contentContext"
 import {
   getRecentAttempts,
   getSessions,
@@ -26,6 +26,7 @@ const fmt = new Intl.DateTimeFormat("en-GB", {
 })
 
 export function HistoryView() {
+  const { exercisesById } = useContent()
   const [data, setData] = useState<{ sessions: Session[]; attempts: Attempt[] } | null>(null)
 
   useEffect(() => {

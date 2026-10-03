@@ -46,3 +46,22 @@ export interface Exercise {
   formulas?: Formula[]
   tables?: StatementTable[]
 }
+
+/** A content pack: the JSON file format for importing and exporting content. See docs/CONTENT_SCHEMA.md. */
+export interface ContentPack {
+  schemaVersion: number
+  contentVersion: string
+  title?: string
+  description?: string
+  exportedAt?: string
+  concepts?: Concept[]
+  questions?: Exercise[]
+  scenarios?: Exercise[]
+}
+
+/** All content available to the app at one time. */
+export interface Bank {
+  concepts: Concept[]
+  questions: Exercise[]
+  scenarios: Exercise[]
+}
