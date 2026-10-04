@@ -1,86 +1,87 @@
-// The Valuation Builder's slot grid: stages run left to right, lanes top to bottom, and every step sits in one slot.
-// Pure and independent of any exercise's solution, so the grid never hints at the answer. Positions are never graded.
+// The Valuation Builder's slot grid. Stages run top to bottom and lanes left to right: every step sits in one slot,
+// a stage is a row, and steps in the same row can run in parallel in different lanes. Pure and independent of any
+// exercise's solution, so the grid never hints at the answer. Positions are never graded.
 
 /** Size of a step bubble (matches the bubble styling). */
 export const NODE_W = 230
-export const NODE_H = 56
-/** Distance between slot origins: leaves room between stages for arrows and between lanes for parallel steps. */
-export const COL_W = 300
-export const ROW_H = 96
+export const NODE_H = 64
+/** Distance between slot origins: lanes sit side by side, stages stack with room between them for arrows. */
+export const LANE_W = 262
+export const STAGE_H = 96
 
 /** The grid always shows at least this much, and grows (one spare stage and lane) as steps are placed. */
-export const MIN_COLS = 4
-export const MIN_ROWS = 3
-export const MAX_COLS = 14
-export const MAX_ROWS = 10
+export const MIN_LANES = 3
+export const MIN_STAGES = 4
+export const MAX_LANES = 8
+export const MAX_STAGES = 14
 
 export interface Slot {
-  col: number
-  row: number
+  lane: number
+  stage: number
 }
 export interface Point {
   x: number
   y: number
 }
 
-export const slotKey = (s: Slot) => `${s.col},${s.row}`
-export const slotPosition = (s: Slot): Point => ({ x: s.col * COL_W, y: s.row * ROW_H })
+export const slotKey = (s: Slot) => `${s.lane},${s.stage}`
+export const slotPosition = (s: Slot): Point => ({ x: s.lane * LANE_W, y: s.stage * STAGE_H })
 
 /** The slot whose origin is nearest to a bubble's top-left corner, inside the largest possible grid. */
 export function slotAt(p: Point): Slot {
   return {
-    col: Math.min(MAX_COLS - 1, Math.max(0, Math.round(p.x / COL_W))),
-    row: Math.min(MAX_ROWS - 1, Math.max(0, Math.round(p.y / ROW_H))),
+    lane: Math.min(MAX_LANES - 1, Math.max(0, Math.round(p.x / LANE_W))),
+    stage: Math.min(MAX_STAGES - 1, Math.max(0, Math.round(p.y / STAGE_H))),
   }
 }
 
-/** The size the grid is drawn at for these occupied slots: one spare stage and lane beyond the furthest step. */
-export function gridSize(occupied: readonly Slot[]): { cols: number; rows: number } {
-  const maxCol = occupied.reduce((m, s) => Math.max(m, s.col), -1)
-  const maxRow = occupied.reduce((m, s) => Math.max(m, s.row), -1)
+/** The size the grid is drawn at for these occupied slots: one spare lane and stage beyond the furthest step. */
+export function gridSize(occupied: readonly Slot[]): { lanes: number; stages: number } {
+  const maxLane = occupied.reduce((m, s) => Math.max(m, s.lane), -1)
+  const maxStage = occupied.reduce((m, s) => Math.max(m, s.stage), -1)
   return {
-    cols: Math.min(MAX_COLS, Math.max(MIN_COLS, maxCol + 2)),
-    rows: Math.min(MAX_ROWS, Math.max(MIN_ROWS, maxRow + 2)),
+    lanes: Math.min(MAX_LANES, Math.max(MIN_LANES, maxLane + 2)),
+    stages: Math.min(MAX_STAGES, Math.max(MIN_STAGES, maxStage + 2)),
   }
 }
 
 /**
  * The nearest unoccupied slot to a dropped or dragged bubble. A bubble dropped on a taken slot goes to the closest
  * free one, never on top of another bubble. The search covers the grid as it will be drawn once the neighbours
- * are placed, plus one extra stage and lane so a bubble can always start a new stage.
+ * are placed, plus one extra lane and stage so a bubble can always start a new stage.
  */
 export function snapToSlot(p: Point, taken: ReadonlySet<string>, occupied: readonly Slot[]): Slot {
   const grid = gridSize(occupied)
-  const cols = Math.min(MAX_COLS, grid.cols + 1)
-  const rows = Math.min(MAX_ROWS, grid.rows + 1)
+  const lanes = Math.min(MAX_LANES, grid.lanes + 1)
+  const stages = Math.min(MAX_STAGES, grid.stages + 1)
   let best: Slot | null = null
   let bestDistance = Number.POSITIVE_INFINITY
-  for (let col = 0; col < cols; col++) {
-    for (let row = 0; row < rows; row++) {
-      if (taken.has(slotKey({ col, row }))) continue
-      const at = slotPosition({ col, row })
-      // Lanes are closer together than stages, so measure in slot units to treat both directions fairly.
-      const d = ((at.x - p.x) / COL_W) ** 2 + ((at.y - p.y) / ROW_H) ** 2
+  for (let lane = 0; lane < lanes; lane++) {
+    for (let stage = 0; stage < stages; stage++) {
+      if (taken.has(slotKey({ lane, stage }))) continue
+      const at = slotPosition({ lane, stage })
+      // Measure in slot units so both directions count fairly.
+      const d = ((at.x - p.x) / LANE_W) ** 2 + ((at.y - p.y) / STAGE_H) ** 2
       if (d < bestDistance) {
         bestDistance = d
-        best = { col, row }
+        best = { lane, stage }
       }
     }
   }
-  return best ?? { col: 0, row: 0 }
+  return best ?? { lane: 0, stage: 0 }
 }
 
 /**
- * Where a step added by clicking goes: the first free slot, filling stage by stage down the lanes of the starting
+ * Where a step added by clicking goes: the first free slot, filling stage by stage across the lanes of the starting
  * grid, then widening to more lanes. It is an arbitrary starting place, not a suggested order.
  */
 export function firstFreeSlot(taken: ReadonlySet<string>): Slot {
-  for (const rows of [MIN_ROWS, 5, MAX_ROWS]) {
-    for (let col = 0; col < MAX_COLS; col++) {
-      for (let row = 0; row < rows; row++) if (!taken.has(slotKey({ col, row }))) return { col, row }
+  for (const lanes of [MIN_LANES, 5, MAX_LANES]) {
+    for (let stage = 0; stage < MAX_STAGES; stage++) {
+      for (let lane = 0; lane < lanes; lane++) if (!taken.has(slotKey({ lane, stage }))) return { lane, stage }
     }
   }
-  return { col: 0, row: 0 }
+  return { lane: 0, stage: 0 }
 }
 
 /** Puts several bubbles on slots, one after another, so no two share a slot. Returns their new top-left positions. */
@@ -98,4 +99,13 @@ export function snapAll(
     out[item.id] = slotPosition(slot)
   }
   return out
+}
+
+/**
+ * Turns a left-to-right layered layout (x = depth, y = lane) into slot positions (y = stage, x = lane), so a
+ * solution is drawn top to bottom on the same grid. `layout` must have been made with column width `STAGE_H`
+ * and row height `LANE_W`, uncentred.
+ */
+export function toSlotLayout(layout: Record<string, Point>): Record<string, Point> {
+  return Object.fromEntries(Object.entries(layout).map(([id, p]) => [id, { x: p.y, y: p.x }]))
 }
