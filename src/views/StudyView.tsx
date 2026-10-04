@@ -200,7 +200,7 @@ export function StudyView({ kind, preset }: { kind: ExerciseKind; preset?: Selec
       <ListFilter className="size-4" aria-hidden />
       Filters
       {activeFilters > 0 && (
-        <span className="rounded-full bg-primary/25 px-1.5 text-xs text-[#cfe0ff]" data-testid="filters-count">
+        <span className="rounded-full bg-primary/25 px-1.5 text-xs text-[var(--accent-text)]" data-testid="filters-count">
           {activeFilters}
         </span>
       )}

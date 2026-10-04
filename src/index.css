@@ -57,46 +57,61 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Dark-only desktop theme.
-   Canvas: charcoal. Panels: a step lighter. Accent: blue with a violet shoulder. */
+/* Theme tokens. These are the default (Emerald) values; the Appearance settings override them at run time from
+   src/lib/theme.ts, which also derives every colour below from four choices: background, panel, accent and text.
+   Keep this block in step with themeVariables(DEFAULT_THEME). */
 :root {
     color-scheme: dark;
-    --background: #121317;
-    --foreground: #e7e9ef;
-    --card: #1a1c23;
-    --card-foreground: #e7e9ef;
-    --popover: #1a1c23;
-    --popover-foreground: #e7e9ef;
-    --primary: #5b9bff;
-    --primary-foreground: #0b1020;
-    --secondary: #242732;
-    --secondary-foreground: #e7e9ef;
-    --muted: #1f222b;
-    --muted-foreground: #8d93a3;
-    --accent: #262a38;
-    --accent-foreground: #e7e9ef;
+    --background: #050c0c;
+    --foreground: #e8f1ee;
+    --card: #0b1615;
+    --card-foreground: #e8f1ee;
+    --popover: #162120;
+    --popover-foreground: #e8f1ee;
+    --primary: #2fd18b;
+    --primary-foreground: #04130d;
+    --secondary: #1a2524;
+    --secondary-foreground: #e8f1ee;
+    --muted: #091211;
+    --muted-foreground: #8d9594;
+    --accent: #123b2d;
+    --accent-foreground: #e8f1ee;
     --destructive: #f0657a;
-    --border: rgb(255 255 255 / 0.08);
-    --input: rgb(255 255 255 / 0.12);
-    --ring: #6d8dff;
-    --chart-1: #5b9bff;
-    --chart-2: #8d93a3;
-    --chart-3: #38c98d;
-    --chart-4: #e8ac4e;
-    --chart-5: #f0657a;
-    --radius: 0.625rem;
-    --sidebar: #16181e;
-    --sidebar-foreground: #e7e9ef;
-    --sidebar-primary: #5b9bff;
-    --sidebar-primary-foreground: #0b1020;
-    --sidebar-accent: #232734;
-    --sidebar-accent-foreground: #e7e9ef;
-    --sidebar-border: rgb(255 255 255 / 0.06);
-    --sidebar-ring: #6d8dff;
+    --border: rgb(47 209 139 / 0.16);
+    --input: rgb(47 209 139 / 0.2);
+    --ring: #2fd18b;
+    --chart-1: #2fd18b;
+    --sidebar: #071010;
+    --sidebar-foreground: #e8f1ee;
+    --sidebar-primary: #2fd18b;
+    --sidebar-primary-foreground: #04130d;
+    --sidebar-accent: #123b2d;
+    --sidebar-accent-foreground: #e8f1ee;
+    --sidebar-border: rgb(47 209 139 / 0.12);
+    --sidebar-ring: #2fd18b;
     --grade-again: #f0657a;
     --grade-hard: #e8ac4e;
     --grade-good: #5b9bff;
     --grade-easy: #38c98d;
+    --again-rgb: 240 101 122;
+    --hard-rgb: 232 172 78;
+    --good-rgb: 91 155 255;
+    --easy-rgb: 56 201 141;
+    --panel-deep: #081110;
+    --bg-rgb: 5 12 12;
+    --panel-rgb: 11 22 21;
+    --panel-deep-rgb: 8 17 16;
+    --accent-rgb: 47 209 139;
+    --text-rgb: 232 241 238;
+    --accent-text: #a2e5c8;
+    --accent-soft: #1a6f4c;
+    --color-white: #e8f1ee;
+    --color-black: #000000;
+    --radius: 0.625rem;
+    --chart-2: #8b7cf6;
+    --chart-3: #5b9bff;
+    --chart-4: #e8ac4e;
+    --chart-5: #f0657a;
 }
 
 @layer base {
@@ -106,8 +121,9 @@
   body {
     @apply bg-background text-foreground;
     background-image:
-      radial-gradient(900px 520px at 88% -8%, rgb(99 102 241 / 0.1), transparent 62%),
-      radial-gradient(720px 520px at -6% 104%, rgb(91 155 255 / 0.07), transparent 60%);
+      radial-gradient(900px 560px at 92% -10%, rgb(47 209 139 / 0.09), transparent 62%),
+      radial-gradient(760px 560px at -8% 108%, rgb(20 184 166 / 0.08), transparent 60%),
+      radial-gradient(520px 420px at 55% 120%, rgb(139 124 246 / 0.05), transparent 60%);
     background-attachment: fixed;
   }
   html {

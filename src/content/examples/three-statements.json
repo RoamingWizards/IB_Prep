@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "example-1",
+  "title": "Example: three-statement exercise",
+  "threeStatementExercises": [
+    {
+      "id": "ts-example-001",
+      "category": "Accounting",
+      "subcategory": "Three statements",
+      "title": "Depreciation rises by $10m (example)",
+      "instructions": [
+        "Depreciation is $10m higher than shown. Update the income statement and the cash flow statement.",
+        "Change every figure that is affected, including totals, and leave the others alone."
+      ],
+      "assumptions": [
+        {
+          "label": "Tax rate",
+          "value": "25% of pre-tax income, paid in cash"
+        },
+        {
+          "label": "Everything else",
+          "value": "Unchanged"
+        }
+      ],
+      "units": "$m",
+      "decimals": 1,
+      "tolerance": 0.05,
+      "conceptIds": [
+        "c-three-statements",
+        "c-non-cash-charges"
+      ],
+      "statements": [
+        {
+          "id": "st-income",
+          "title": "Income statement",
+          "rows": [
+            {
+              "id": "r-is-rev",
+              "label": "Revenue",
+              "original": 100,
+              "correct": 100
+            },
+            {
+              "id": "r-is-opex",
+              "label": "Operating expenses (excluding depreciation)",
+              "original": 50,
+              "correct": 50
+            },
+            {
+              "id": "r-is-dep",
+              "label": "Depreciation",
+              "original": 10,
+              "correct": 20
+            },
+            {
+              "id": "r-is-ebit",
+              "label": "Operating income",
+              "style": "subtotal",
+              "original": 40,
+              "correct": 30
+            },
+            {
+              "id": "r-is-tax",
+              "label": "Income tax (25%)",
+              "original": 10,
+              "correct": 7.5
+            },
+            {
+              "id": "r-is-ni",
+              "label": "Net income",
+              "style": "total",
+              "original": 30,
+              "correct": 22.5
+            }
+          ]
+        },
+        {
+          "id": "st-cash",
+          "title": "Cash flow statement",
+          "rows": [
+            {
+              "id": "r-cf-h",
+              "label": "Operating activities",
+              "style": "header"
+            },
+            {
+              "id": "r-cf-ni",
+              "label": "Net income",
+              "indent": 1,
+              "original": 30,
+              "correct": 22.5
+            },
+            {
+              "id": "r-cf-dep",
+              "label": "Add back: depreciation",
+              "indent": 1,
+              "original": 10,
+              "correct": 20
+            },
+            {
+              "id": "r-cf-cfo",
+              "label": "Cash flow from operations",
+              "style": "total",
+              "original": 40,
+              "correct": 42.5
+            }
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "id": "step-01",
+          "title": "Depreciation rises",
+          "text": "Depreciation goes from $10.0m to $20.0m, which lowers operating income from $40.0m to $30.0m.",
+          "rows": [
+            "r-is-dep",
+            "r-is-ebit"
+          ],
+          "connections": [
+            {
+              "from": "r-is-dep",
+              "to": "r-is-ebit",
+              "label": "Reduces operating income"
+            }
+          ]
+        },
+        {
+          "id": "step-02",
+          "title": "Tax and net income fall",
+          "text": "At a 25% tax rate, tax falls from $10.0m to $7.5m and net income from $30.0m to $22.5m.",
+          "rows": [
+            "r-is-tax",
+            "r-is-ni"
+          ],
+          "connections": [
+            {
+              "from": "r-is-ebit",
+              "to": "r-is-tax"
+            },
+            {
+              "from": "r-is-tax",
+              "to": "r-is-ni"
+            }
+          ]
+        },
+        {
+          "id": "step-03",
+          "title": "Cash rises",
+          "text": "Depreciation is added back because it is non-cash, so cash flow from operations rises from $40.0m to $42.5m: lower tax is cash saved.",
+          "rows": [
+            "r-cf-ni",
+            "r-cf-dep",
+            "r-cf-cfo"
+          ],
+          "connections": [
+            {
+              "from": "r-is-ni",
+              "to": "r-cf-ni"
+            },
+            {
+              "from": "r-cf-dep",
+              "to": "r-cf-cfo"
+            },
+            {
+              "from": "r-cf-ni",
+              "to": "r-cf-cfo"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

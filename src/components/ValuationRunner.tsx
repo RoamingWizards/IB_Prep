@@ -22,6 +22,8 @@ import { prefersReducedMotion } from "@/components/kit/motion"
 import { ConnectionsPanel, Feedback, SolutionNotes, StepBank, STEP_DRAG_TYPE } from "@/components/ValuationPanels"
 import { FloatingEdge } from "@/components/valuation/FloatingEdge"
 import { EDGE_COLOR, type EdgeStatus, type FlowEdge } from "@/components/valuation/status"
+import { isLight } from "@/lib/theme"
+import { useTheme } from "@/lib/themeContext"
 import { SlotNode, StageNode, type SlotNodeType, type StageNodeType } from "@/components/valuation/GridNodes"
 import { StepNode, type NodeStatus, type StepNodeType } from "@/components/valuation/StepNode"
 import type { ValuationStep } from "@/content/types"
@@ -75,6 +77,8 @@ export function ValuationRunner(props: Props) {
 
 function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
   const { screenToFlowPosition, fitView } = useReactFlow()
+  const { theme } = useTheme()
+  const flowMode = isLight(theme) ? "light" : "dark"
   const [attempt, setAttempt] = useState(initialAttempt)
   const exercise = attempt.snapshot
   const steps = useMemo(() => new Map(exercise.steps.map((s) => [s.id, s])), [exercise])
@@ -357,10 +361,11 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
   // Fit view frames the diagram (the placed steps) so labels stay as large as possible; with nothing placed it frames the grid.
   const fit = useCallback(
     (duration = prefersReducedMotion() ? 0 : 300) => {
-      const ids = (showSolution ? solutionNodes : nodesRef.current).map((n) => ({ id: n.id }))
+      // The "Stage n" labels are part of the picture, so keep them in view with the steps.
+      const ids = [...(showSolution ? solutionNodes : nodesRef.current).map((n) => ({ id: n.id })), ...grid.nodes.filter((n) => n.type === "stage").map((n) => ({ id: n.id }))]
       void fitView({ padding: 0.15, duration, ...(ids.length > 0 ? { nodes: ids } : {}) })
     },
-    [fitView, showSolution, solutionNodes],
+    [fitView, showSolution, solutionNodes, grid.nodes],
   )
 
   const flowNodes = useMemo(
@@ -409,7 +414,7 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
       <Panel className="shrink-0 p-4" data-testid="exercise-brief">
         <div className="flex items-start justify-between gap-3">
           <p className="text-[0.9375rem] leading-relaxed" data-testid="exercise-task">
-            <span className="font-medium text-[#cfe0ff]">Task: </span>
+            <span className="font-medium text-[var(--accent-text)]">Task: </span>
             {exercise.task}
           </p>
           <button
@@ -571,13 +576,13 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
               nodesConnectable={!submitted}
               elementsSelectable={!submitted}
               deleteKeyCode={submitted ? null : ["Backspace", "Delete"]}
-              colorMode="dark"
+              colorMode={flowMode}
               fitView
               fitViewOptions={{ padding: 0.2 }}
               minZoom={0.2}
               maxZoom={1.8}
             >
-              <Background variant={BackgroundVariant.Dots} gap={22} size={1.4} color="rgb(255 255 255 / 0.12)" />
+              <Background variant={BackgroundVariant.Dots} gap={22} size={1.4} color="rgb(var(--text-rgb) / 0.14)" />
               <Controls showInteractive={false} fitViewOptions={{ padding: 0.2 }} />
               {!submitted && (
                 <FlowPanel position="top-left" className="vb-caption" data-testid="grid-caption">

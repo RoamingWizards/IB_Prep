@@ -19,6 +19,7 @@ export const ID_PREFIX = {
   valuationGraph: "vg-",
   valuationEdge: "ve-",
   quickMath: "qm-",
+  behavioural: "bq-",
 } as const
 export const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 export const MAX_ID_LENGTH = 80
@@ -49,3 +50,9 @@ export const MAX_QUICK_MATH_ASSUMPTIONS = 8
 
 /** Skill tree: the most prerequisites one concept may list. */
 export const MAX_PREREQUISITES = 12
+
+/** Behavioural question limits. */
+export const MAX_GUIDANCE_PARAGRAPHS = 8
+export const MIN_FRAMEWORK_STEPS = 2
+export const MAX_FRAMEWORK_STEPS = 8
+export const MAX_CHECKLIST_ITEMS = 12

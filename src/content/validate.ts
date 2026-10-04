@@ -9,6 +9,10 @@ import {
   MAX_INDENT,
   DIFFICULTIES,
   MAX_OPTION_ID_LENGTH,
+  MAX_CHECKLIST_ITEMS,
+  MAX_FRAMEWORK_STEPS,
+  MAX_GUIDANCE_PARAGRAPHS,
+  MIN_FRAMEWORK_STEPS,
   MAX_PREREQUISITES,
   MAX_QUICK_MATH_ASSUMPTIONS,
   MAX_OPTIONS,
@@ -22,6 +26,8 @@ import {
   SCHEMA_VERSION,
 } from "./schema.ts"
 import type {
+  AnswerFramework,
+  BehaviouralQuestion,
   ChoiceOption,
   Concept,
   ContentPack,
@@ -780,6 +786,59 @@ function validateQuickMath(raw: unknown, index: number, r: Report): QuickMathQue
   return out
 }
 
+function validateBehavioural(raw: unknown, index: number, r: Report): BehaviouralQuestion | null {
+  const at = `behaviouralQuestions[${index}]`
+  if (!isRecord(raw)) {
+    r.error(`${at}: must be an object.`)
+    return null
+  }
+  const before = r.errors.length
+  const id = checkId(raw.id, ID_PREFIX.behavioural, at, r)
+  const label = id ? `${at} (${id})` : at
+  if (!isText(raw.category, 80)) r.error(`${label}.category: required text (up to 80 characters).`)
+  if (!isText(raw.title, 200)) r.error(`${label}.title: required short text (up to 200 characters).`)
+  if (!isText(raw.prompt, 1000)) r.error(`${label}.prompt: required text, the question itself (up to 1000 characters).`)
+  if (raw.firm !== undefined && !isText(raw.firm, 80)) r.error(`${label}.firm: must be text (up to 80 characters) when present.`)
+  let guidance: string[] | undefined
+  if (raw.guidance !== undefined) {
+    if (!Array.isArray(raw.guidance) || raw.guidance.length === 0 || raw.guidance.length > MAX_GUIDANCE_PARAGRAPHS || !raw.guidance.every((g) => isText(g, 1500))) {
+      r.error(`${label}.guidance: must be a list of 1 to ${MAX_GUIDANCE_PARAGRAPHS} text paragraphs when present.`)
+    } else guidance = raw.guidance as string[]
+  }
+  let framework: AnswerFramework | undefined
+  if (raw.framework !== undefined) {
+    const f = raw.framework
+    const steps = isRecord(f) ? f.steps : undefined
+    if (
+      !isRecord(f) ||
+      !isText(f.name, 40) ||
+      !Array.isArray(steps) ||
+      steps.length < MIN_FRAMEWORK_STEPS ||
+      steps.length > MAX_FRAMEWORK_STEPS ||
+      !steps.every((s) => isRecord(s) && isText(s.label, 60) && isText(s.hint, 400))
+    ) {
+      r.error(`${label}.framework: must be { "name", "steps" } with ${MIN_FRAMEWORK_STEPS} to ${MAX_FRAMEWORK_STEPS} steps, each { "label", "hint" } text.`)
+    } else {
+      warnUnknown(f, ["name", "steps"], `${label}.framework`, r)
+      framework = { name: f.name as string, steps: (steps as Record<string, unknown>[]).map((s) => ({ label: s.label as string, hint: s.hint as string })) }
+    }
+  }
+  let checklist: string[] | undefined
+  if (raw.checklist !== undefined) {
+    if (!Array.isArray(raw.checklist) || raw.checklist.length === 0 || raw.checklist.length > MAX_CHECKLIST_ITEMS || !raw.checklist.every((c) => isText(c, 200))) {
+      r.error(`${label}.checklist: must be a list of 1 to ${MAX_CHECKLIST_ITEMS} short text items when present.`)
+    } else checklist = raw.checklist as string[]
+  }
+  warnUnknown(raw, ["id", "category", "title", "prompt", "firm", "guidance", "framework", "checklist"], label, r)
+  if (r.errors.length > before || !id) return null
+  const out: BehaviouralQuestion = { id, category: (raw.category as string).trim(), title: raw.title as string, prompt: raw.prompt as string }
+  if (raw.firm !== undefined) out.firm = raw.firm as string
+  if (guidance) out.guidance = guidance
+  if (framework) out.framework = framework
+  if (checklist) out.checklist = checklist
+  return out
+}
+
 function validateChoice(raw: unknown, index: number, r: Report): MultipleChoice | null {
   const at = `multipleChoice[${index}]`
   if (!isRecord(raw)) {
@@ -917,12 +976,12 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
   for (const key of ["title", "description", "exportedAt"] as const) {
     if (raw[key] !== undefined && !isText(raw[key], 1000)) r.error(`${key}: must be text when present.`)
   }
-  for (const key of ["concepts", "questions", "scenarios", "multipleChoice", "processes", "threeStatementExercises", "valuationExercises", "quickMathQuestions"] as const) {
+  for (const key of ["concepts", "questions", "scenarios", "multipleChoice", "processes", "threeStatementExercises", "valuationExercises", "quickMathQuestions", "behaviouralQuestions"] as const) {
     if (raw[key] !== undefined && !Array.isArray(raw[key])) r.error(`${key}: must be a list when present.`)
   }
   warnUnknown(
     raw,
-    ["schemaVersion", "contentVersion", "title", "description", "exportedAt", "concepts", "questions", "scenarios", "multipleChoice", "processes", "threeStatementExercises", "valuationExercises", "quickMathQuestions"],
+    ["schemaVersion", "contentVersion", "title", "description", "exportedAt", "concepts", "questions", "scenarios", "multipleChoice", "processes", "threeStatementExercises", "valuationExercises", "quickMathQuestions", "behaviouralQuestions"],
     "pack",
     r,
   )
@@ -938,9 +997,10 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
   const statementExercises = list("threeStatementExercises").map((e, i) => validateStatementExercise(e, i, r))
   const valuationExercises = list("valuationExercises").map((e, i) => validateValuationExercise(e, i, r))
   const quickMath = list("quickMathQuestions").map((q, i) => validateQuickMath(q, i, r))
+  const behavioural = list("behaviouralQuestions").map((q, i) => validateBehavioural(q, i, r))
 
-  if (concepts.length + questions.length + scenarios.length + choices.length + processes.length + statementExercises.length + valuationExercises.length + quickMath.length === 0) {
-    r.error("The pack contains no concepts, questions, scenarios, multiple-choice questions, processes, three-statement exercises, valuation exercises or quick maths questions.")
+  if (concepts.length + questions.length + scenarios.length + choices.length + processes.length + statementExercises.length + valuationExercises.length + quickMath.length + behavioural.length === 0) {
+    r.error("The pack contains no concepts, questions, scenarios, multiple-choice questions, processes, three-statement exercises, valuation exercises, quick maths questions or behavioural questions.")
   }
 
   // Duplicate IDs anywhere in the pack, including stage IDs inside processes.
@@ -958,6 +1018,7 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
   list("threeStatementExercises").forEach((e, i) => isRecord(e) && track(e.id, `threeStatementExercises[${i}]`))
   list("valuationExercises").forEach((e, i) => isRecord(e) && track(e.id, `valuationExercises[${i}]`))
   list("quickMathQuestions").forEach((q, i) => isRecord(q) && track(q.id, `quickMathQuestions[${i}]`))
+  list("behaviouralQuestions").forEach((q, i) => isRecord(q) && track(q.id, `behaviouralQuestions[${i}]`))
   list("processes").forEach((p, i) => {
     if (!isRecord(p)) return
     track(p.id, `processes[${i}]`)
@@ -1048,6 +1109,7 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
     threeStatementExercises: statementExercises as ThreeStatementExercise[],
     valuationExercises: valuationExercises as ValuationExercise[],
     quickMathQuestions: quickMath as QuickMathQuestion[],
+    behaviouralQuestions: behavioural as BehaviouralQuestion[],
   }
   if (raw.title !== undefined) pack.title = raw.title as string
   if (raw.description !== undefined) pack.description = raw.description as string

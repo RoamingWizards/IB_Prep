@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "example-1",
+  "title": "Example: Quick Maths question",
+  "quickMathQuestions": [
+    {
+      "id": "qm-example-001",
+      "category": "Multiples",
+      "subcategory": "EV/EBITDA",
+      "difficulty": "easy",
+      "conceptIds": [
+        "c-ev-ebitda",
+        "c-enterprise-value"
+      ],
+      "prompt": "What is the company's enterprise value?",
+      "assumptions": [
+        {
+          "label": "EBITDA",
+          "value": "$50m"
+        },
+        {
+          "label": "Multiple",
+          "value": "8.0x EV/EBITDA"
+        }
+      ],
+      "answer": 400,
+      "units": "$m",
+      "tolerance": 0,
+      "explanation": "Enterprise value = EBITDA × multiple = 50 × 8.0 = 400."
+    }
+  ]
+}

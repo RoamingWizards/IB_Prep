@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "example-1",
+  "title": "Example: behavioural question",
+  "behaviouralQuestions": [
+    {
+      "id": "bq-example-001",
+      "category": "Experience",
+      "title": "A time you took initiative (example)",
+      "prompt": "Tell me about a time you took the initiative.",
+      "guidance": [
+        "Pick a situation where nobody asked you to act. Be clear about what you decided and why."
+      ],
+      "framework": {
+        "name": "STAR",
+        "steps": [
+          {
+            "label": "Situation",
+            "hint": "Set the scene briefly."
+          },
+          {
+            "label": "Task",
+            "hint": "What needed doing."
+          },
+          {
+            "label": "Action",
+            "hint": "What you did, in the first person."
+          },
+          {
+            "label": "Result",
+            "hint": "The outcome, with numbers if you can."
+          }
+        ]
+      },
+      "checklist": [
+        "Starts with a specific situation",
+        "Says what I did, not only what we did",
+        "Gives a concrete result"
+      ]
+    }
+  ]
+}

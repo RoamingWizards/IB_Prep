@@ -71,7 +71,7 @@ function Segmented<T extends string | number>({
             className={cn(
               "h-10 flex-1 rounded-xl border border-white/12 bg-black/20 px-3 text-sm text-muted-foreground transition-colors outline-none hover:border-white/25 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring",
               value === o.value &&
-                "border-primary/40 bg-primary/12 font-medium text-[#cfe0ff] shadow-[inset_0_0_0_1px_rgb(91_155_255/0.25),0_0_24px_-10px_rgb(91_155_255/0.6)]",
+                "border-primary/40 bg-primary/12 font-medium text-[var(--accent-text)] shadow-[inset_0_0_0_1px_rgb(var(--accent-rgb)/0.25),0_0_24px_-10px_rgb(var(--accent-rgb)/0.6)]",
             )}
           >
             {o.label}

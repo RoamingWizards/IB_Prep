@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "example-1",
+  "title": "Example: flashcard question",
+  "questions": [
+    {
+      "id": "q-example-001",
+      "kind": "question",
+      "category": "Valuation",
+      "subcategory": "Enterprise value",
+      "title": "Enterprise value to equity value (example)",
+      "prompt": "How do you get from enterprise value to equity value?",
+      "answer": [
+        "Start from enterprise value. Subtract net debt (debt less cash) and other claims on the business, such as preferred stock and non-controlling interest.",
+        "What remains is the value attributable to common shareholders."
+      ],
+      "conceptIds": [
+        "c-enterprise-value",
+        "c-equity-value",
+        "c-net-debt"
+      ],
+      "formulas": [
+        {
+          "label": "Equity value",
+          "expression": "Enterprise value − net debt − preferred stock − non-controlling interest"
+        }
+      ]
+    }
+  ]
+}

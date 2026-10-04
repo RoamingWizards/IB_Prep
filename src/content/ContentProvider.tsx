@@ -47,7 +47,8 @@ export function ContentProvider({ children }: { children: ReactNode }) {
         (stored?.processes.length ?? 0) +
         (stored?.statements.length ?? 0) +
         (stored?.valuations.length ?? 0) +
-        (stored?.quickMath.length ?? 0),
+        (stored?.quickMath.length ?? 0) +
+        (stored?.behavioural.length ?? 0),
       imports: stored?.imports ?? [],
       exercisesFor: (kind) => (kind === "question" ? bank.questions : bank.scenarios),
       exercisesById: new Map([...bank.questions, ...bank.scenarios].map((e) => [e.id, e])),

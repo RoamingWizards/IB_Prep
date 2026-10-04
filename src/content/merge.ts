@@ -2,6 +2,7 @@
 import type { KnownIds } from "./validate.ts"
 import type {
   Bank,
+  BehaviouralQuestion,
   Concept,
   ContentPack,
   Exercise,
@@ -28,6 +29,7 @@ export interface StoredContent {
   statements: StoredItem<ThreeStatementExercise>[]
   valuations: StoredItem<ValuationExercise>[]
   quickMath: StoredItem<QuickMathQuestion>[]
+  behavioural: StoredItem<BehaviouralQuestion>[]
 }
 
 function overlay<T extends { id: string }>(bundled: T[], stored: StoredItem<T>[]): T[] {
@@ -51,6 +53,7 @@ export function mergeBank(bundled: Bank, stored: StoredContent): Bank {
     threeStatementExercises: overlay(bundled.threeStatementExercises, stored.statements),
     valuationExercises: overlay(bundled.valuationExercises, stored.valuations),
     quickMathQuestions: overlay(bundled.quickMathQuestions, stored.quickMath),
+    behaviouralQuestions: overlay(bundled.behaviouralQuestions, stored.behavioural),
   }
 }
 
@@ -76,7 +79,7 @@ export function deepEqual(a: unknown, b: unknown): boolean {
   return ka.every((k) => k in b && deepEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]))
 }
 
-export type ItemType = "question" | "scenario" | "concept" | "choice" | "process" | "statement" | "valuation" | "quickMath"
+export type ItemType = "question" | "scenario" | "concept" | "choice" | "process" | "statement" | "valuation" | "quickMath" | "behavioural"
 export type ChangeStatus = "add" | "update" | "unchanged"
 
 export interface PreviewItem {
@@ -158,6 +161,11 @@ export function diffPack(pack: ContentPack, bank: Bank): Preview {
     subcategory: q.subcategory,
     detail: q.difficulty,
   }))
+  compare(pack.behaviouralQuestions, bank.behaviouralQuestions, "behavioural", (q) => ({
+    label: q.title,
+    category: q.category,
+    detail: [q.firm, q.framework?.name].filter(Boolean).join(" · ") || undefined,
+  }))
 
   const newTopics: Preview["newTopics"] = []
   for (const [kind, list, existing] of [
@@ -193,5 +201,6 @@ export function bankToPack(bank: Bank, contentVersion: string, exportedAt: strin
     threeStatementExercises: bank.threeStatementExercises,
     valuationExercises: bank.valuationExercises,
     quickMathQuestions: bank.quickMathQuestions,
+    behaviouralQuestions: bank.behaviouralQuestions,
   }
 }

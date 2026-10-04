@@ -1,7 +1,7 @@
 // User progress lives in IndexedDB, separate from the read-only JSON content.
 // Records reference content only by stable exercise ID.
 import { openDB, type DBSchema, type IDBPDatabase } from "idb"
-import type { ExerciseKind, ThreeStatementExercise, ValuationExercise } from "@/content/types"
+import type { AnswerFramework, ExerciseKind, ThreeStatementExercise, ValuationExercise } from "@/content/types"
 import type { StatementGrade } from "./threeStatements"
 import type { ValuationGrade } from "./valuation"
 import type { Mode, Result, SessionQuestion, Selection } from "./quickMath"
@@ -145,6 +145,43 @@ export interface QuickMathResult {
   at: number
 }
 
+/** The user's own writing for one behavioural question. Keyed by the question's ID, never stored inside question content. */
+export interface BehaviouralNote {
+  questionId: string
+  answer: string // the full answer as written
+  bullets: string // concise practice bullet points, one per line
+  updatedAt: number
+}
+
+/** A question the user wrote themselves (including firm-specific prompts). Lives in progress storage, not content. */
+export interface BehaviouralUserQuestion {
+  id: string // "bu-…", never reused
+  category: string
+  title: string
+  prompt: string
+  firm?: string
+  guidance?: string[]
+  framework?: AnswerFramework
+  checklist?: string[]
+  createdAt: number
+  updatedAt: number
+}
+
+/** One finished behavioural practice. Question details are copied so History still reads well if a question changes. */
+export interface BehaviouralSession {
+  id?: number
+  questionId: string
+  questionTitle: string
+  category: string
+  source: "provided" | "yours"
+  startedAt: number
+  at: number // when the learner saved it
+  durationMs: number | null // null when the timer was not used
+  outcome: "needs-work" | "ready"
+  reflection: string
+  checklist: { checked: number; total: number } | null
+}
+
 interface ProgressDB extends DBSchema {
   cardStates: { key: string; value: CardState }
   attempts: {
@@ -184,14 +221,21 @@ interface ProgressDB extends DBSchema {
     value: QuickMathResult
     indexes: { by_at: number; by_session_question: [string, string] }
   }
+  behaviouralNotes: { key: string; value: BehaviouralNote }
+  behaviouralUserQuestions: { key: string; value: BehaviouralUserQuestion }
+  behaviouralSessions: {
+    key: number
+    value: BehaviouralSession
+    indexes: { by_at: number; by_question: string }
+  }
 }
 
 let dbPromise: Promise<IDBPDatabase<ProgressDB>> | null = null
 
 function db() {
-  // Version 2 added the Deal Walk stores and version 3 the Three Statements attempts and version 4 the Valuation Builder attempts and version 5 the Quick Maths sessions and results. Upgrading only adds
+  // Version 2 added the Deal Walk stores and version 3 the Three Statements attempts and version 4 the Valuation Builder attempts version 5 the Quick Maths sessions and results and version 6 the personal Behavioural answers, questions and sessions. Upgrading only adds
   // stores; existing progress is left untouched.
-  dbPromise ??= openDB<ProgressDB>("ib-prep-progress", 5, {
+  dbPromise ??= openDB<ProgressDB>("ib-prep-progress", 6, {
     upgrade(d, oldVersion) {
       if (oldVersion < 1) {
         d.createObjectStore("cardStates", { keyPath: "exerciseId" })
@@ -232,10 +276,20 @@ function db() {
         // One saved result per question per session: a second submission of the same question is rejected by the database.
         results.createIndex("by_session_question", ["sessionId", "questionKey"], { unique: true })
       }
+      if (oldVersion < 6) {
+        d.createObjectStore("behaviouralNotes", { keyPath: "questionId" })
+        d.createObjectStore("behaviouralUserQuestions", { keyPath: "id" })
+        const sessions = d.createObjectStore("behaviouralSessions", { keyPath: "id", autoIncrement: true })
+        sessions.createIndex("by_at", "at")
+        sessions.createIndex("by_question", "questionId")
+      }
     },
   })
   return dbPromise
 }
+
+/** The open progress database, for backup, restore and deletion (src/lib/backupData.ts). */
+export const getProgressDb = () => db()
 
 export async function getAllCardStates(): Promise<Map<string, CardState>> {
   const all = await (await db()).getAll("cardStates")
@@ -655,4 +709,43 @@ export async function advanceQuickMath(sessionId: string, index: number, now = D
   await tx.store.put(next)
   await tx.done
   return { session: next, duplicate: false }
+}
+
+// ---- Behavioural ----
+
+export async function getBehaviouralNote(questionId: string) {
+  return (await db()).get("behaviouralNotes", questionId)
+}
+
+export async function getAllBehaviouralNotes(): Promise<BehaviouralNote[]> {
+  return (await db()).getAll("behaviouralNotes")
+}
+
+/** Saves the user's writing for a question. Replaces that question's note only. */
+export async function saveBehaviouralNote(note: BehaviouralNote) {
+  await (await db()).put("behaviouralNotes", note)
+}
+
+export async function getBehaviouralSessions(): Promise<BehaviouralSession[]> {
+  const all = await (await db()).getAllFromIndex("behaviouralSessions", "by_at")
+  return all.reverse()
+}
+
+export async function addBehaviouralSession(session: Omit<BehaviouralSession, "id">) {
+  return (await db()).add("behaviouralSessions", session)
+}
+
+export async function getBehaviouralUserQuestions(): Promise<BehaviouralUserQuestion[]> {
+  const all = await (await db()).getAll("behaviouralUserQuestions")
+  return all.sort((a, b) => a.createdAt - b.createdAt)
+}
+
+export async function saveBehaviouralUserQuestion(question: BehaviouralUserQuestion) {
+  await (await db()).put("behaviouralUserQuestions", question)
+}
+
+/** Deletes the user's own question and the writing saved for it. Practice sessions stay in History. */
+export async function deleteBehaviouralUserQuestion(id: string) {
+  const tx = (await db()).transaction(["behaviouralUserQuestions", "behaviouralNotes"], "readwrite")
+  await Promise.all([tx.objectStore("behaviouralUserQuestions").delete(id), tx.objectStore("behaviouralNotes").delete(id), tx.done])
 }

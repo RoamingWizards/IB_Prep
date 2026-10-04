@@ -23,19 +23,23 @@ import { conceptTopics, NO_TOPIC, type PracticeTarget } from "@/lib/conceptTarge
 import { connectedChain } from "@/lib/conceptChain"
 import { layeredLayout } from "@/lib/graphLayout"
 import { LEVEL_LABEL, SOURCE_LABEL, SOURCES, type MasteryLevel } from "@/lib/mastery"
+import { isLight } from "@/lib/theme"
+import { useTheme } from "@/lib/themeContext"
 import { useMastery } from "@/lib/useMastery"
 
 const nodeTypes: NodeTypes = { concept: ConceptNode }
 const LEVELS: MasteryLevel[] = ["not-studied", "weak", "developing", "strong"]
 const selectClass =
   "h-9 rounded-xl border border-white/12 bg-black/20 px-3 text-sm outline-none transition-colors hover:border-white/25 focus-visible:ring-2 focus-visible:ring-ring"
-const EDGE_IDLE = "#6f7bb8"
-const EDGE_ACTIVE = "#b6a9ff"
+const EDGE_IDLE = "color-mix(in srgb, var(--primary) 55%, var(--muted-foreground))"
+const EDGE_ACTIVE = "var(--primary)"
 
 function SkillTree({ onOpen }: { onOpen: (target: PracticeTarget) => void }) {
   const { bank } = useContent()
   const { state, targets } = useMastery()
   const { fitView } = useReactFlow()
+  const { theme } = useTheme()
+  const flowMode = isLight(theme) ? "light" : "dark"
   const [topic, setTopic] = useState<string>("all")
   const [pickedId, setSelectedId] = useState<string | null>(null)
   const [nodes, setNodes, applyChanges] = useNodesState<ConceptNodeType>([])
@@ -226,13 +230,13 @@ function SkillTree({ onOpen }: { onOpen: (target: PracticeTarget) => void }) {
               nodesDraggable={false}
               nodesConnectable={false}
               elementsSelectable
-              colorMode="dark"
+              colorMode={flowMode}
               fitView
               fitViewOptions={{ padding: 0.06 }}
               minZoom={0.15}
               maxZoom={1.6}
             >
-              <Background variant={BackgroundVariant.Dots} gap={22} size={1.4} color="rgb(255 255 255 / 0.12)" />
+              <Background variant={BackgroundVariant.Dots} gap={22} size={1.4} color="rgb(var(--text-rgb) / 0.14)" />
               <Controls showInteractive={false} fitViewOptions={{ padding: 0.06 }} />
             </ReactFlow>
           </div>

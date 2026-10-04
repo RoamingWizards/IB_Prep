@@ -7,9 +7,9 @@ export type FlowEdgeData = { status: EdgeStatus }
 export type FlowEdge = Edge<FlowEdgeData, "floating">
 
 export const EDGE_COLOR: Record<EdgeStatus, string> = {
-  idle: "#8b9cff",
-  correct: "#38c98d",
-  wrong: "#f0657a",
-  expected: "#a89bff",
-  optional: "#a89bff",
+  idle: "var(--primary)",
+  correct: "var(--grade-easy)",
+  wrong: "var(--grade-again)",
+  expected: "#8b7cf6",
+  optional: "#8b7cf6",
 }
