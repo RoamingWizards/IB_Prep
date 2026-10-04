@@ -51,6 +51,7 @@ export const NOTICE_SECTIONS: NoticeSection[] = [
       s(`Database "ib-prep-content": ${CONTENT_STORES.filter((x) => !x.keyValue).length} stores holding content you imported (concepts, questions, exercises) and a log of imports. The content that ships with the app is not stored here.`),
       s(`Local storage item "${THEME_MIRROR_KEY}": a copy of your four chosen colours, so the app can paint them straight away.`),
       s("Nothing else: no cookies, no session storage, no cache storage and no service worker were found."),
+      s("In the Mac desktop app the same data is kept in the app's own storage folder (Application Support, under \"IB Prep\") instead of a browser profile, together with a small file remembering the window size and position. It is separate from any browser copy."),
     ],
   },
   {
@@ -67,6 +68,7 @@ export const NOTICE_SECTIONS: NoticeSection[] = [
     paragraphs: [
       s("The app's own code makes no network requests of its own: there is no analytics, telemetry, advertising, crash reporting, account system or server API, and none of the libraries it uses were found to send data. In a checked session through every screen, importing, exporting and copying, the only requests were for the app's own files from the address it was loaded from (the page, its script and stylesheet, the icon and the bundled fonts), all of them plain downloads with no data sent."),
       s("The fonts are shipped inside the app; they are not loaded from a font service."),
+      s("The Mac desktop app loads its own bundled files and blocks every other network request. Its only outside link, the React Flow credit, opens in your default browser when you click it."),
       ["Whoever hosts the app can see ordinary information that comes with any web request, such as the time, your network address and your browser type, and may log it. That is outside the app's control. Hosting details: ", ph("hosting"), "."],
       s("The Skill Tree and Valuation Builder show a small \"React Flow\" credit. It is an ordinary link and sends nothing unless you click it, which opens the library's website in your browser."),
     ],
