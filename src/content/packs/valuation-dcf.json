@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "sample-4",
+  "title": "Valuation Builder: DCF process",
+  "description": "One complete valuation-process exercise: build a DCF from forecast to implied share price, with distractors, parallel branches and two accepted terminal value methods.",
+  "valuationExercises": [
+    {
+      "id": "vx-dcf-001",
+      "category": "Valuation",
+      "subcategory": "DCF",
+      "title": "Build a DCF valuation process",
+      "task": "Build the process for valuing a company with an unlevered DCF, from the operating forecast to the implied value per share, using one terminal value method.",
+      "instructions": [
+        "Drag the steps you need from the bank onto the canvas, then draw an arrow from each step to the step that depends on it, so an arrow means 'this must be done before that'.",
+        "The bank also holds steps that do not belong in this process. Steps that do not depend on each other should not be chained one after another: show them as parallel branches that join where both are needed."
+      ],
+      "assumptions": [
+        {
+          "label": "Approach",
+          "value": "Unlevered free cash flows discounted at WACC to enterprise value"
+        },
+        {
+          "label": "Terminal value",
+          "value": "Use either the perpetuity growth or the exit multiple method, not both"
+        },
+        {
+          "label": "End point",
+          "value": "Implied value per diluted share"
+        }
+      ],
+      "conceptIds": [
+        "c-dcf",
+        "c-ufcf",
+        "c-wacc",
+        "c-terminal-value",
+        "c-enterprise-value",
+        "c-equity-value",
+        "c-net-debt"
+      ],
+      "steps": [
+        {
+          "id": "vs-forecast",
+          "label": "Forecast revenue and operating profit (EBIT)",
+          "explanation": "Every cash flow in the DCF is built from an operating forecast, so this is the starting point."
+        },
+        {
+          "id": "vs-nopat",
+          "label": "Tax-effect EBIT to get NOPAT",
+          "explanation": "Unlevered cash flow starts from operating profit after tax, before any interest. NOPAT = EBIT x (1 - tax rate)."
+        },
+        {
+          "id": "vs-adjust",
+          "label": "Add back D&A; deduct capex and the increase in net working capital",
+          "explanation": "Depreciation is non-cash, while capital spending and working capital absorb cash. Both are driven by the operating forecast."
+        },
+        {
+          "id": "vs-ufcf",
+          "label": "Calculate unlevered free cash flow",
+          "explanation": "NOPAT plus D&A, less capex and the increase in net working capital gives the cash flow available to all capital providers."
+        },
+        {
+          "id": "vs-wacc",
+          "label": "Calculate WACC",
+          "explanation": "The discount rate for unlevered cash flows is the weighted average cost of capital. It depends on the capital structure and market inputs, not on the forecast, so it can be built in parallel."
+        },
+        {
+          "id": "vs-tv-pg",
+          "label": "Calculate terminal value (perpetuity growth)",
+          "explanation": "Values the cash flows beyond the forecast by growing the final-year cash flow at a steady rate."
+        },
+        {
+          "id": "vs-tv-em",
+          "label": "Calculate terminal value (exit multiple)",
+          "explanation": "Values the business at the end of the forecast by applying a market multiple to final-year EBITDA. An alternative to the perpetuity growth method."
+        },
+        {
+          "id": "vs-disc-fcf",
+          "label": "Discount the projected cash flows at WACC",
+          "explanation": "Each forecast year's unlevered free cash flow is brought back to today at WACC."
+        },
+        {
+          "id": "vs-disc-tv",
+          "label": "Discount the terminal value at WACC",
+          "explanation": "The terminal value sits at the end of the forecast, so it is discounted back to today at WACC as well."
+        },
+        {
+          "id": "vs-ev",
+          "label": "Add the present values to get enterprise value",
+          "explanation": "Enterprise value is the present value of the forecast cash flows plus the present value of the terminal value."
+        },
+        {
+          "id": "vs-netdebt",
+          "label": "Calculate net debt",
+          "explanation": "Debt less cash from the balance sheet. It does not depend on the forecast, so it can be done in parallel."
+        },
+        {
+          "id": "vs-equity",
+          "label": "Subtract net debt to get equity value",
+          "explanation": "Enterprise value belongs to all capital providers; subtracting net debt leaves the value attributable to shareholders."
+        },
+        {
+          "id": "vs-shares",
+          "label": "Calculate diluted shares outstanding",
+          "explanation": "Shares plus the dilution from options and convertibles. It is independent of the valuation steps and is needed only at the end."
+        },
+        {
+          "id": "vs-pershare",
+          "label": "Divide equity value by diluted shares",
+          "explanation": "Equity value per diluted share is the implied share price, the end point of the process."
+        },
+        {
+          "id": "vs-d-lfcf",
+          "label": "Calculate levered free cash flow (after interest and debt repayment)",
+          "explanation": "Does not belong. Levered cash flow is for an equity-value DCF; this process discounts unlevered cash flow at WACC to reach enterprise value."
+        },
+        {
+          "id": "vs-d-coe",
+          "label": "Discount the cash flows at the cost of equity",
+          "explanation": "Does not belong. Unlevered cash flows are discounted at WACC. The cost of equity only suits cash flows that belong to shareholders alone."
+        },
+        {
+          "id": "vs-d-addnd",
+          "label": "Add net debt to enterprise value to get equity value",
+          "explanation": "Does not belong. The bridge runs the other way: equity value = enterprise value minus net debt."
+        },
+        {
+          "id": "vs-d-comps",
+          "label": "Apply peer trading multiples to current EBITDA",
+          "explanation": "Does not belong. That is a trading comparables valuation, a different method from a DCF."
+        },
+        {
+          "id": "vs-d-bookeq",
+          "label": "Start from the book value of equity",
+          "explanation": "Does not belong. A DCF values the cash flows of the business; book value is an accounting figure from the balance sheet."
+        },
+        {
+          "id": "vs-d-interest",
+          "label": "Deduct interest expense before taxing EBIT",
+          "explanation": "Does not belong. Unlevered cash flow ignores financing, so interest is not deducted; the tax shield is captured in WACC."
+        }
+      ],
+      "distractors": [
+        "vs-d-lfcf",
+        "vs-d-coe",
+        "vs-d-addnd",
+        "vs-d-comps",
+        "vs-d-bookeq",
+        "vs-d-interest"
+      ],
+      "solutions": [
+        {
+          "id": "vg-perpetuity",
+          "title": "Perpetuity growth terminal value",
+          "steps": [
+            "vs-forecast",
+            "vs-nopat",
+            "vs-adjust",
+            "vs-ufcf",
+            "vs-wacc",
+            "vs-disc-fcf",
+            "vs-disc-tv",
+            "vs-ev",
+            "vs-netdebt",
+            "vs-equity",
+            "vs-shares",
+            "vs-pershare",
+            "vs-tv-pg"
+          ],
+          "edges": [
+            {
+              "id": "ve-a-01",
+              "from": "vs-forecast",
+              "to": "vs-nopat",
+              "explanation": "Taxes are applied to the forecast operating profit."
+            },
+            {
+              "id": "ve-a-02",
+              "from": "vs-forecast",
+              "to": "vs-adjust",
+              "explanation": "D&A, capex and working-capital changes all follow from the operating forecast."
+            },
+            {
+              "id": "ve-a-03",
+              "from": "vs-nopat",
+              "to": "vs-ufcf",
+              "explanation": "NOPAT is the starting point of unlevered free cash flow."
+            },
+            {
+              "id": "ve-a-04",
+              "from": "vs-adjust",
+              "to": "vs-ufcf",
+              "explanation": "The add-back and the deductions complete the cash flow. This step runs in parallel with the tax step, not after it."
+            },
+            {
+              "id": "ve-a-05",
+              "from": "vs-ufcf",
+              "to": "vs-tv-pg",
+              "explanation": "The terminal value grows the final-year unlevered free cash flow."
+            },
+            {
+              "id": "ve-a-06",
+              "from": "vs-wacc",
+              "to": "vs-tv-pg",
+              "explanation": "The perpetuity formula divides by WACC less the growth rate. Accepted if drawn, but not required.",
+              "optional": true
+            },
+            {
+              "id": "ve-a-07",
+              "from": "vs-ufcf",
+              "to": "vs-disc-fcf",
+              "explanation": "The projected cash flows are what gets discounted."
+            },
+            {
+              "id": "ve-a-08",
+              "from": "vs-wacc",
+              "to": "vs-disc-fcf",
+              "explanation": "The cash flows are discounted at WACC."
+            },
+            {
+              "id": "ve-a-09",
+              "from": "vs-tv-pg",
+              "to": "vs-disc-tv",
+              "explanation": "The terminal value is the amount being discounted."
+            },
+            {
+              "id": "ve-a-10",
+              "from": "vs-wacc",
+              "to": "vs-disc-tv",
+              "explanation": "The terminal value is also discounted at WACC."
+            },
+            {
+              "id": "ve-a-11",
+              "from": "vs-disc-fcf",
+              "to": "vs-ev",
+              "explanation": "Present value of the forecast cash flows."
+            },
+            {
+              "id": "ve-a-12",
+              "from": "vs-disc-tv",
+              "to": "vs-ev",
+              "explanation": "Present value of the terminal value."
+            },
+            {
+              "id": "ve-a-13",
+              "from": "vs-ev",
+              "to": "vs-equity",
+              "explanation": "Enterprise value is the starting point of the bridge to equity."
+            },
+            {
+              "id": "ve-a-14",
+              "from": "vs-netdebt",
+              "to": "vs-equity",
+              "explanation": "Net debt is subtracted. It is built separately and joins here."
+            },
+            {
+              "id": "ve-a-15",
+              "from": "vs-equity",
+              "to": "vs-pershare",
+              "explanation": "Equity value is the numerator."
+            },
+            {
+              "id": "ve-a-16",
+              "from": "vs-shares",
+              "to": "vs-pershare",
+              "explanation": "Diluted shares are the denominator. Built separately and joins here."
+            }
+          ]
+        },
+        {
+          "id": "vg-exit-multiple",
+          "title": "Exit multiple terminal value",
+          "steps": [
+            "vs-forecast",
+            "vs-nopat",
+            "vs-adjust",
+            "vs-ufcf",
+            "vs-wacc",
+            "vs-disc-fcf",
+            "vs-disc-tv",
+            "vs-ev",
+            "vs-netdebt",
+            "vs-equity",
+            "vs-shares",
+            "vs-pershare",
+            "vs-tv-em"
+          ],
+          "edges": [
+            {
+              "id": "ve-b-01",
+              "from": "vs-forecast",
+              "to": "vs-nopat",
+              "explanation": "Taxes are applied to the forecast operating profit."
+            },
+            {
+              "id": "ve-b-02",
+              "from": "vs-forecast",
+              "to": "vs-adjust",
+              "explanation": "D&A, capex and working-capital changes all follow from the operating forecast."
+            },
+            {
+              "id": "ve-b-03",
+              "from": "vs-nopat",
+              "to": "vs-ufcf",
+              "explanation": "NOPAT is the starting point of unlevered free cash flow."
+            },
+            {
+              "id": "ve-b-04",
+              "from": "vs-adjust",
+              "to": "vs-ufcf",
+              "explanation": "The add-back and the deductions complete the cash flow. This step runs in parallel with the tax step, not after it."
+            },
+            {
+              "id": "ve-b-05",
+              "from": "vs-forecast",
+              "to": "vs-tv-em",
+              "explanation": "The exit multiple is applied to final-year EBITDA, which comes from the operating forecast.",
+              "alternatives": [
+                {
+                  "from": "vs-adjust",
+                  "to": "vs-tv-em"
+                }
+              ]
+            },
+            {
+              "id": "ve-b-07",
+              "from": "vs-ufcf",
+              "to": "vs-disc-fcf",
+              "explanation": "The projected cash flows are what gets discounted."
+            },
+            {
+              "id": "ve-b-08",
+              "from": "vs-wacc",
+              "to": "vs-disc-fcf",
+              "explanation": "The cash flows are discounted at WACC."
+            },
+            {
+              "id": "ve-b-09",
+              "from": "vs-tv-em",
+              "to": "vs-disc-tv",
+              "explanation": "The terminal value is the amount being discounted."
+            },
+            {
+              "id": "ve-b-10",
+              "from": "vs-wacc",
+              "to": "vs-disc-tv",
+              "explanation": "The terminal value is also discounted at WACC."
+            },
+            {
+              "id": "ve-b-11",
+              "from": "vs-disc-fcf",
+              "to": "vs-ev",
+              "explanation": "Present value of the forecast cash flows."
+            },
+            {
+              "id": "ve-b-12",
+              "from": "vs-disc-tv",
+              "to": "vs-ev",
+              "explanation": "Present value of the terminal value."
+            },
+            {
+              "id": "ve-b-13",
+              "from": "vs-ev",
+              "to": "vs-equity",
+              "explanation": "Enterprise value is the starting point of the bridge to equity."
+            },
+            {
+              "id": "ve-b-14",
+              "from": "vs-netdebt",
+              "to": "vs-equity",
+              "explanation": "Net debt is subtracted. It is built separately and joins here."
+            },
+            {
+              "id": "ve-b-15",
+              "from": "vs-equity",
+              "to": "vs-pershare",
+              "explanation": "Equity value is the numerator."
+            },
+            {
+              "id": "ve-b-16",
+              "from": "vs-shares",
+              "to": "vs-pershare",
+              "explanation": "Diluted shares are the denominator. Built separately and joins here."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

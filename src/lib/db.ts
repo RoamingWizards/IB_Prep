@@ -1,7 +1,9 @@
 // User progress lives in IndexedDB, separate from the read-only JSON content.
 // Records reference content only by stable exercise ID.
 import { openDB, type DBSchema, type IDBPDatabase } from "idb"
-import type { ExerciseKind } from "@/content/types"
+import type { ExerciseKind, ThreeStatementExercise, ValuationExercise } from "@/content/types"
+import type { StatementGrade } from "./threeStatements"
+import type { ValuationGrade } from "./valuation"
 
 export type Rating = "again" | "hard" | "good" | "easy"
 export const RATINGS: Rating[] = ["again", "hard", "good", "easy"]
@@ -67,6 +69,42 @@ export interface ChoiceAttempt {
   at: number
 }
 
+/**
+ * One attempt at a Three Statements exercise. `snapshot` is a copy of the exercise as it was when the
+ * attempt began, so later content updates never change an attempt already started or submitted.
+ */
+export interface StatementAttempt {
+  id: string
+  exerciseId: string
+  startedAt: number
+  updatedAt: number
+  snapshot: ThreeStatementExercise
+  entries: Record<string, string> // row ID -> text as typed
+  status: "draft" | "submitted"
+  submittedAt?: number
+  grade?: StatementGrade
+  solution?: { shown: boolean; step: number } // where the learner was in the worked solution
+}
+
+/**
+ * One attempt at a Valuation Builder exercise. `snapshot` is a copy of the exercise as it was when the
+ * attempt began, so later content updates never change an attempt already started or submitted.
+ */
+export interface ValuationAttempt {
+  id: string
+  exerciseId: string
+  startedAt: number
+  updatedAt: number
+  snapshot: ValuationExercise
+  bankOrder: string[] // step IDs in the order the bank shows them; shuffled once per attempt
+  placed: Record<string, { x: number; y: number }> // step ID -> position on the canvas (never graded)
+  edges: { id: string; from: string; to: string }[] // the learner's directed connections
+  status: "draft" | "submitted"
+  submittedAt?: number
+  grade?: ValuationGrade
+  view?: { tab: "answer" | "solution"; graphId?: string } // what the learner was looking at after submitting
+}
+
 interface ProgressDB extends DBSchema {
   cardStates: { key: string; value: CardState }
   attempts: {
@@ -86,13 +124,24 @@ interface ProgressDB extends DBSchema {
     value: ChoiceAttempt
     indexes: { by_at: number; by_session_stage: [string, string] }
   }
+  statementAttempts: {
+    key: string
+    value: StatementAttempt
+    indexes: { by_exercise: string; by_started: number }
+  }
+  valuationAttempts: {
+    key: string
+    value: ValuationAttempt
+    indexes: { by_exercise: string; by_started: number }
+  }
 }
 
 let dbPromise: Promise<IDBPDatabase<ProgressDB>> | null = null
 
 function db() {
-  // Version 2 adds the Deal Walk stores. Upgrading only adds stores; existing progress is left untouched.
-  dbPromise ??= openDB<ProgressDB>("ib-prep-progress", 2, {
+  // Version 2 added the Deal Walk stores and version 3 the Three Statements attempts and version 4 the Valuation Builder attempts. Upgrading only adds
+  // stores; existing progress is left untouched.
+  dbPromise ??= openDB<ProgressDB>("ib-prep-progress", 4, {
     upgrade(d, oldVersion) {
       if (oldVersion < 1) {
         d.createObjectStore("cardStates", { keyPath: "exerciseId" })
@@ -114,6 +163,16 @@ function db() {
         results.createIndex("by_at", "at")
         // One saved result per stage per walk: a second submission of the same stage is rejected by the database.
         results.createIndex("by_session_stage", ["sessionId", "stageId"], { unique: true })
+      }
+      if (oldVersion < 3) {
+        const attempts = d.createObjectStore("statementAttempts", { keyPath: "id" })
+        attempts.createIndex("by_exercise", "exerciseId")
+        attempts.createIndex("by_started", "startedAt")
+      }
+      if (oldVersion < 4) {
+        const attempts = d.createObjectStore("valuationAttempts", { keyPath: "id" })
+        attempts.createIndex("by_exercise", "exerciseId")
+        attempts.createIndex("by_started", "startedAt")
       }
     },
   })
@@ -265,4 +324,128 @@ export async function getRecentChoiceAttempts(limit = 50): Promise<ChoiceAttempt
     cursor = await cursor.continue()
   }
   return out
+}
+
+// ---- Three Statements ----
+
+export async function getStatementAttempts(): Promise<StatementAttempt[]> {
+  const all = await (await db()).getAllFromIndex("statementAttempts", "by_started")
+  return all.reverse()
+}
+
+export async function getStatementAttempt(id: string) {
+  return (await db()).get("statementAttempts", id)
+}
+
+/** Saves a draft. A submitted attempt is never overwritten, so a late autosave cannot undo a submission. */
+export async function saveStatementDraft(attempt: StatementAttempt): Promise<StatementAttempt> {
+  const tx = (await db()).transaction("statementAttempts", "readwrite")
+  const existing = await tx.store.get(attempt.id)
+  if (existing && existing.status === "submitted") {
+    await tx.done
+    return existing
+  }
+  const next = { ...attempt, status: "draft" as const }
+  await tx.store.put(next)
+  await tx.done
+  return next
+}
+
+export type StatementSubmitOutcome = { attempt: StatementAttempt; duplicate: boolean }
+
+/** Marks an attempt submitted exactly once. A second submission returns the stored result unchanged. */
+export async function submitStatementAttempt(
+  attempt: StatementAttempt,
+  grade: StatementGrade,
+  now = Date.now(),
+): Promise<StatementSubmitOutcome> {
+  const tx = (await db()).transaction("statementAttempts", "readwrite")
+  const existing = await tx.store.get(attempt.id)
+  if (existing && existing.status === "submitted") {
+    await tx.done
+    return { attempt: existing, duplicate: true }
+  }
+  const submitted: StatementAttempt = { ...attempt, status: "submitted", grade, submittedAt: now, updatedAt: now }
+  await tx.store.put(submitted)
+  await tx.done
+  return { attempt: submitted, duplicate: false }
+}
+
+/** Remembers where the learner is in the worked solution. */
+export async function saveStatementView(id: string, solution: { shown: boolean; step: number }) {
+  const tx = (await db()).transaction("statementAttempts", "readwrite")
+  const existing = await tx.store.get(id)
+  if (existing && existing.status === "submitted") await tx.store.put({ ...existing, solution })
+  await tx.done
+}
+
+/** Removes unfinished attempts of an exercise (used when the learner starts over). Submitted ones stay. */
+export async function discardStatementDrafts(exerciseId: string) {
+  const tx = (await db()).transaction("statementAttempts", "readwrite")
+  for (const a of await tx.store.index("by_exercise").getAll(exerciseId)) {
+    if (a.status === "draft") await tx.store.delete(a.id)
+  }
+  await tx.done
+}
+
+// ---- Valuation Builder ----
+
+export async function getValuationAttempts(): Promise<ValuationAttempt[]> {
+  const all = await (await db()).getAllFromIndex("valuationAttempts", "by_started")
+  return all.reverse()
+}
+
+export async function getValuationAttempt(id: string) {
+  return (await db()).get("valuationAttempts", id)
+}
+
+/** Saves a draft. A submitted attempt is never overwritten, so a late autosave cannot undo a submission. */
+export async function saveValuationDraft(attempt: ValuationAttempt): Promise<ValuationAttempt> {
+  const tx = (await db()).transaction("valuationAttempts", "readwrite")
+  const existing = await tx.store.get(attempt.id)
+  if (existing && existing.status === "submitted") {
+    await tx.done
+    return existing
+  }
+  const next = { ...attempt, status: "draft" as const }
+  await tx.store.put(next)
+  await tx.done
+  return next
+}
+
+export type ValuationSubmitOutcome = { attempt: ValuationAttempt; duplicate: boolean }
+
+/** Marks an attempt submitted exactly once. A second submission returns the stored result unchanged. */
+export async function submitValuationAttempt(
+  attempt: ValuationAttempt,
+  grade: ValuationGrade,
+  now = Date.now(),
+): Promise<ValuationSubmitOutcome> {
+  const tx = (await db()).transaction("valuationAttempts", "readwrite")
+  const existing = await tx.store.get(attempt.id)
+  if (existing && existing.status === "submitted") {
+    await tx.done
+    return { attempt: existing, duplicate: true }
+  }
+  const submitted: ValuationAttempt = { ...attempt, status: "submitted", grade, submittedAt: now, updatedAt: now }
+  await tx.store.put(submitted)
+  await tx.done
+  return { attempt: submitted, duplicate: false }
+}
+
+/** Remembers whether the learner was looking at their own diagram or the solution. */
+export async function saveValuationView(id: string, view: NonNullable<ValuationAttempt["view"]>) {
+  const tx = (await db()).transaction("valuationAttempts", "readwrite")
+  const existing = await tx.store.get(id)
+  if (existing && existing.status === "submitted") await tx.store.put({ ...existing, view })
+  await tx.done
+}
+
+/** Removes unfinished attempts of an exercise (used when the learner starts over). Submitted ones stay. */
+export async function discardValuationDrafts(exerciseId: string) {
+  const tx = (await db()).transaction("valuationAttempts", "readwrite")
+  for (const a of await tx.store.index("by_exercise").getAll(exerciseId)) {
+    if (a.status === "draft") await tx.store.delete(a.id)
+  }
+  await tx.done
 }

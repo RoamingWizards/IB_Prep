@@ -1,0 +1,606 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "sample-3",
+  "title": "Three statements: depreciation",
+  "description": "One complete three-statement exercise: a $10m increase in depreciation with explicit tax assumptions.",
+  "concepts": [
+    {
+      "id": "c-retained-earnings",
+      "name": "Retained earnings",
+      "summary": "Cumulative net income less dividends. It links the income statement to shareholders' equity on the balance sheet."
+    },
+    {
+      "id": "c-cash-reconciliation",
+      "name": "Cash reconciliation",
+      "summary": "Ending cash on the cash flow statement must equal cash on the balance sheet, which is what ties the three statements together."
+    }
+  ],
+  "threeStatementExercises": [
+    {
+      "id": "ts-depreciation-001",
+      "category": "Accounting",
+      "subcategory": "Three statements",
+      "title": "Depreciation rises by $10m",
+      "instructions": [
+        "Depreciation expense turns out to be $10m higher than the figures shown. Update the income statement, cash flow statement and balance sheet for this change.",
+        "Each statement shows the original figures beside editable figures that start with the same values. Change every figure that is affected, including subtotals and totals, and leave the others alone. Then submit to see how you did."
+      ],
+      "assumptions": [
+        {
+          "label": "Change",
+          "value": "Depreciation expense is $10m higher than originally recorded"
+        },
+        {
+          "label": "Tax rate",
+          "value": "25% of pre-tax income"
+        },
+        {
+          "label": "Tax treatment",
+          "value": "The extra depreciation is tax-deductible, and income tax is paid in cash in the same period (no deferred taxes)"
+        },
+        {
+          "label": "Working capital and capex",
+          "value": "Unchanged"
+        },
+        {
+          "label": "Interest and financing",
+          "value": "Unchanged; no new debt or equity is raised"
+        },
+        {
+          "label": "Dividends",
+          "value": "Fixed at $40m, so they do not change"
+        }
+      ],
+      "units": "$m",
+      "decimals": 1,
+      "tolerance": 0.05,
+      "conceptIds": [
+        "c-three-statements",
+        "c-non-cash-charges",
+        "c-tax-shield",
+        "c-retained-earnings",
+        "c-cash-reconciliation"
+      ],
+      "statements": [
+        {
+          "id": "st-income",
+          "title": "Income statement",
+          "rows": [
+            {
+              "id": "r-is-rev",
+              "label": "Revenue",
+              "original": 1000,
+              "correct": 1000
+            },
+            {
+              "id": "r-is-cogs",
+              "label": "Less: Cost of goods sold",
+              "original": 400,
+              "correct": 400
+            },
+            {
+              "id": "r-is-gp",
+              "label": "Gross profit",
+              "style": "subtotal",
+              "original": 600,
+              "correct": 600
+            },
+            {
+              "id": "r-is-h-opex",
+              "label": "Operating expenses",
+              "style": "header"
+            },
+            {
+              "id": "r-is-sga",
+              "label": "Selling, general and administrative",
+              "indent": 1,
+              "original": 200,
+              "correct": 200
+            },
+            {
+              "id": "r-is-dep",
+              "label": "Depreciation",
+              "indent": 1,
+              "original": 50,
+              "correct": 60
+            },
+            {
+              "id": "r-is-opex",
+              "label": "Total operating expenses",
+              "style": "subtotal",
+              "original": 250,
+              "correct": 260
+            },
+            {
+              "id": "r-is-ebit",
+              "label": "Operating income (EBIT)",
+              "style": "subtotal",
+              "original": 350,
+              "correct": 340
+            },
+            {
+              "id": "r-is-int",
+              "label": "Less: Interest expense",
+              "original": 40,
+              "correct": 40
+            },
+            {
+              "id": "r-is-ebt",
+              "label": "Pre-tax income",
+              "style": "subtotal",
+              "original": 310,
+              "correct": 300
+            },
+            {
+              "id": "r-is-tax",
+              "label": "Less: Income tax expense (25%)",
+              "original": 77.5,
+              "correct": 75
+            },
+            {
+              "id": "r-is-ni",
+              "label": "Net income",
+              "style": "total",
+              "original": 232.5,
+              "correct": 225
+            }
+          ]
+        },
+        {
+          "id": "st-cashflow",
+          "title": "Cash flow statement (indirect method)",
+          "rows": [
+            {
+              "id": "r-cf-h-op",
+              "label": "Operating activities",
+              "style": "header"
+            },
+            {
+              "id": "r-cf-ni",
+              "label": "Net income",
+              "indent": 1,
+              "original": 232.5,
+              "correct": 225
+            },
+            {
+              "id": "r-cf-dep",
+              "label": "Add: Depreciation",
+              "indent": 1,
+              "original": 50,
+              "correct": 60
+            },
+            {
+              "id": "r-cf-ar",
+              "label": "(Increase) in accounts receivable",
+              "indent": 1,
+              "original": -20,
+              "correct": -20
+            },
+            {
+              "id": "r-cf-inv",
+              "label": "(Increase) in inventory",
+              "indent": 1,
+              "original": -10,
+              "correct": -10
+            },
+            {
+              "id": "r-cf-ap",
+              "label": "Increase in accounts payable",
+              "indent": 1,
+              "original": 15,
+              "correct": 15
+            },
+            {
+              "id": "r-cf-cfo",
+              "label": "Cash flow from operations",
+              "style": "subtotal",
+              "original": 267.5,
+              "correct": 270
+            },
+            {
+              "id": "r-cf-h-inv",
+              "label": "Investing activities",
+              "style": "header"
+            },
+            {
+              "id": "r-cf-capex",
+              "label": "Capital expenditures",
+              "indent": 1,
+              "original": -80,
+              "correct": -80
+            },
+            {
+              "id": "r-cf-cfi",
+              "label": "Cash flow from investing",
+              "style": "subtotal",
+              "original": -80,
+              "correct": -80
+            },
+            {
+              "id": "r-cf-h-fin",
+              "label": "Financing activities",
+              "style": "header"
+            },
+            {
+              "id": "r-cf-debt",
+              "label": "Repayment of debt",
+              "indent": 1,
+              "original": -50,
+              "correct": -50
+            },
+            {
+              "id": "r-cf-div",
+              "label": "Dividends paid",
+              "indent": 1,
+              "original": -40,
+              "correct": -40
+            },
+            {
+              "id": "r-cf-cff",
+              "label": "Cash flow from financing",
+              "style": "subtotal",
+              "original": -90,
+              "correct": -90
+            },
+            {
+              "id": "r-cf-net",
+              "label": "Net change in cash",
+              "style": "subtotal",
+              "original": 97.5,
+              "correct": 100
+            },
+            {
+              "id": "r-cf-beg",
+              "label": "Cash at beginning of year",
+              "original": 100,
+              "correct": 100
+            },
+            {
+              "id": "r-cf-end",
+              "label": "Cash at end of year",
+              "style": "total",
+              "original": 197.5,
+              "correct": 200
+            }
+          ]
+        },
+        {
+          "id": "st-balance",
+          "title": "Balance sheet",
+          "rows": [
+            {
+              "id": "r-bs-h-assets",
+              "label": "Assets",
+              "style": "header"
+            },
+            {
+              "id": "r-bs-cash",
+              "label": "Cash",
+              "indent": 1,
+              "original": 197.5,
+              "correct": 200
+            },
+            {
+              "id": "r-bs-ar",
+              "label": "Accounts receivable",
+              "indent": 1,
+              "original": 120,
+              "correct": 120
+            },
+            {
+              "id": "r-bs-inv",
+              "label": "Inventory",
+              "indent": 1,
+              "original": 90,
+              "correct": 90
+            },
+            {
+              "id": "r-bs-tca",
+              "label": "Total current assets",
+              "style": "subtotal",
+              "original": 407.5,
+              "correct": 410
+            },
+            {
+              "id": "r-bs-ppe",
+              "label": "Property, plant and equipment, net",
+              "original": 600,
+              "correct": 590
+            },
+            {
+              "id": "r-bs-ta",
+              "label": "Total assets",
+              "style": "total",
+              "original": 1007.5,
+              "correct": 1000
+            },
+            {
+              "id": "r-bs-h-liab",
+              "label": "Liabilities",
+              "style": "header"
+            },
+            {
+              "id": "r-bs-ap",
+              "label": "Accounts payable",
+              "indent": 1,
+              "original": 80,
+              "correct": 80
+            },
+            {
+              "id": "r-bs-tcl",
+              "label": "Total current liabilities",
+              "style": "subtotal",
+              "original": 80,
+              "correct": 80
+            },
+            {
+              "id": "r-bs-debt",
+              "label": "Long-term debt",
+              "original": 400,
+              "correct": 400
+            },
+            {
+              "id": "r-bs-tl",
+              "label": "Total liabilities",
+              "style": "subtotal",
+              "original": 480,
+              "correct": 480
+            },
+            {
+              "id": "r-bs-h-eq",
+              "label": "Shareholders' equity",
+              "style": "header"
+            },
+            {
+              "id": "r-bs-cs",
+              "label": "Common stock",
+              "indent": 1,
+              "original": 200,
+              "correct": 200
+            },
+            {
+              "id": "r-bs-re",
+              "label": "Retained earnings",
+              "indent": 1,
+              "original": 327.5,
+              "correct": 320
+            },
+            {
+              "id": "r-bs-te",
+              "label": "Total shareholders' equity",
+              "style": "subtotal",
+              "original": 527.5,
+              "correct": 520
+            },
+            {
+              "id": "r-bs-tle",
+              "label": "Total liabilities and equity",
+              "style": "total",
+              "original": 1007.5,
+              "correct": 1000
+            }
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "id": "step-01",
+          "title": "Depreciation rises by $10m",
+          "text": "Depreciation is an operating expense, so the extra $10m raises it from $50.0m to $60.0m and total operating expenses from $250.0m to $260.0m.",
+          "rows": [
+            "r-is-dep"
+          ],
+          "connections": [
+            {
+              "from": "r-is-dep",
+              "to": "r-is-opex",
+              "label": "Feeds total operating expenses"
+            }
+          ]
+        },
+        {
+          "id": "step-02",
+          "title": "Operating income and pre-tax income fall by $10m",
+          "text": "Higher operating expenses reduce operating income (EBIT) by $10m to $340.0m. Interest is unchanged, so pre-tax income also falls by $10m to $300.0m.",
+          "rows": [
+            "r-is-opex",
+            "r-is-ebit",
+            "r-is-ebt"
+          ],
+          "connections": [
+            {
+              "from": "r-is-opex",
+              "to": "r-is-ebit",
+              "label": "Opex up, EBIT down"
+            },
+            {
+              "from": "r-is-ebit",
+              "to": "r-is-ebt",
+              "label": "Interest unchanged"
+            }
+          ]
+        },
+        {
+          "id": "step-03",
+          "title": "Taxes fall by $2.5m, so net income falls by $7.5m",
+          "text": "At a 25% tax rate on $300.0m of pre-tax income, tax expense is $75.0m, down $2.5m. Net income therefore falls by $10m less $2.5m, which is $7.5m, to $225.0m.",
+          "rows": [
+            "r-is-ebt",
+            "r-is-tax",
+            "r-is-ni"
+          ],
+          "connections": [
+            {
+              "from": "r-is-ebt",
+              "to": "r-is-tax",
+              "label": "25% of pre-tax income"
+            },
+            {
+              "from": "r-is-tax",
+              "to": "r-is-ni",
+              "label": "Lower tax cushions the fall"
+            }
+          ]
+        },
+        {
+          "id": "step-04",
+          "title": "Both changes reach the cash flow statement",
+          "text": "Cash flow from operations starts with net income, now $225.0m. Depreciation is a non-cash expense, so the full $60.0m is added back.",
+          "rows": [
+            "r-cf-ni",
+            "r-cf-dep"
+          ],
+          "connections": [
+            {
+              "from": "r-is-ni",
+              "to": "r-cf-ni",
+              "label": "Starting point"
+            },
+            {
+              "from": "r-is-dep",
+              "to": "r-cf-dep",
+              "label": "Non-cash add-back"
+            }
+          ]
+        },
+        {
+          "id": "step-05",
+          "title": "Cash from operations rises by $2.5m",
+          "text": "Net income is down $7.5m but the add-back is up $10m, so cash flow from operations rises by $2.5m to $270.0m. That is exactly the tax saving. Investing and financing are unchanged.",
+          "rows": [
+            "r-cf-ni",
+            "r-cf-dep",
+            "r-cf-cfo"
+          ],
+          "connections": [
+            {
+              "from": "r-cf-ni",
+              "to": "r-cf-cfo",
+              "label": "Down $7.5m"
+            },
+            {
+              "from": "r-cf-dep",
+              "to": "r-cf-cfo",
+              "label": "Up $10m"
+            }
+          ]
+        },
+        {
+          "id": "step-06",
+          "title": "Net change in cash and ending cash rise by $2.5m",
+          "text": "With investing (-$80.0m) and financing (-$90.0m) unchanged, the net change in cash is $100.0m. Added to $100.0m of opening cash, ending cash is $200.0m.",
+          "rows": [
+            "r-cf-cfo",
+            "r-cf-net",
+            "r-cf-end"
+          ],
+          "connections": [
+            {
+              "from": "r-cf-cfo",
+              "to": "r-cf-net",
+              "label": "Plus unchanged investing and financing"
+            },
+            {
+              "from": "r-cf-net",
+              "to": "r-cf-end",
+              "label": "Plus opening cash"
+            }
+          ]
+        },
+        {
+          "id": "step-07",
+          "title": "Ending cash links to the balance sheet",
+          "text": "Cash on the balance sheet must equal ending cash on the cash flow statement, so it rises by $2.5m to $200.0m. Current assets rise to $410.0m.",
+          "rows": [
+            "r-bs-cash",
+            "r-bs-tca"
+          ],
+          "connections": [
+            {
+              "from": "r-cf-end",
+              "to": "r-bs-cash",
+              "label": "Cash reconciles"
+            },
+            {
+              "from": "r-bs-cash",
+              "to": "r-bs-tca",
+              "label": "Feeds current assets"
+            }
+          ]
+        },
+        {
+          "id": "step-08",
+          "title": "PP&E falls by the $10m of extra depreciation",
+          "text": "Depreciation reduces the book value of property, plant and equipment, so PP&E falls by $10m to $590.0m. Total assets fall by $7.5m: cash is up $2.5m and PP&E is down $10m, giving $1,000.0m.",
+          "rows": [
+            "r-bs-ppe",
+            "r-bs-tca",
+            "r-bs-ta"
+          ],
+          "connections": [
+            {
+              "from": "r-is-dep",
+              "to": "r-bs-ppe",
+              "label": "Lowers book value"
+            },
+            {
+              "from": "r-bs-ppe",
+              "to": "r-bs-ta",
+              "label": "Down $10m"
+            },
+            {
+              "from": "r-bs-tca",
+              "to": "r-bs-ta",
+              "label": "Up $2.5m"
+            }
+          ]
+        },
+        {
+          "id": "step-09",
+          "title": "Retained earnings absorb the $7.5m fall in net income",
+          "text": "Retained earnings accumulate net income less dividends. Dividends are fixed, so retained earnings fall by $7.5m to $320.0m, and total equity falls to $520.0m.",
+          "rows": [
+            "r-is-ni",
+            "r-bs-re",
+            "r-bs-te"
+          ],
+          "connections": [
+            {
+              "from": "r-is-ni",
+              "to": "r-bs-re",
+              "label": "Net income accumulates"
+            },
+            {
+              "from": "r-bs-re",
+              "to": "r-bs-te",
+              "label": "Feeds total equity"
+            }
+          ]
+        },
+        {
+          "id": "step-10",
+          "title": "The balance sheet balances again",
+          "text": "Liabilities are unchanged at $480.0m and equity is $520.0m, so total liabilities and equity are $1,000.0m, matching total assets of $1,000.0m.",
+          "rows": [
+            "r-bs-ta",
+            "r-bs-tl",
+            "r-bs-te",
+            "r-bs-tle"
+          ],
+          "connections": [
+            {
+              "from": "r-bs-te",
+              "to": "r-bs-tle",
+              "label": "Plus liabilities of $480.0m"
+            },
+            {
+              "from": "r-bs-ta",
+              "to": "r-bs-tle",
+              "label": "Assets = liabilities + equity"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

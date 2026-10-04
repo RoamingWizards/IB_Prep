@@ -10,6 +10,14 @@ export const ID_PREFIX = {
   choice: "mc-",
   process: "p-",
   stage: "ps-",
+  statementExercise: "ts-",
+  statement: "st-",
+  row: "r-",
+  step: "step-",
+  valuationExercise: "vx-",
+  valuationStep: "vs-",
+  valuationGraph: "vg-",
+  valuationEdge: "ve-",
 } as const
 export const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 export const MAX_ID_LENGTH = 80
@@ -21,3 +29,15 @@ export const MIN_OPTIONS = 2
 export const MAX_OPTIONS = 5
 export const MAX_OPTION_ID_LENGTH = 40
 export const MAX_STAGES = 50
+
+/** Three-statement exercise limits. */
+export const MAX_STATEMENTS = 6
+export const MAX_STATEMENT_ROWS = 80
+export const MAX_STEPS = 40
+export const MAX_INDENT = 3
+export const MAX_DECIMALS = 4
+
+/** Valuation Builder limits. */
+export const MAX_VALUATION_STEPS = 40
+export const MAX_VALUATION_GRAPHS = 5
+export const MAX_GRAPH_EDGES = 120

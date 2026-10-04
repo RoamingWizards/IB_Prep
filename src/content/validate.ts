@@ -3,10 +3,18 @@
 import {
   ID_PATTERN,
   ID_PREFIX,
+  MAX_DECIMALS,
+  MAX_GRAPH_EDGES,
   MAX_ID_LENGTH,
+  MAX_INDENT,
   MAX_OPTION_ID_LENGTH,
   MAX_OPTIONS,
   MAX_STAGES,
+  MAX_STATEMENT_ROWS,
+  MAX_STATEMENTS,
+  MAX_STEPS,
+  MAX_VALUATION_GRAPHS,
+  MAX_VALUATION_STEPS,
   MIN_OPTIONS,
   SCHEMA_VERSION,
 } from "./schema.ts"
@@ -15,6 +23,10 @@ import type {
   Concept,
   ContentPack,
   Exercise,
+  ExplanationConnection,
+  ExplanationStep,
+  FinancialRow,
+  FinancialStatement,
   ExerciseKind,
   Formula,
   Given,
@@ -23,6 +35,12 @@ import type {
   ProcessStage,
   StatementRow,
   StatementTable,
+  ThreeStatementExercise,
+  ValuationEdge,
+  ValuationEdgeRef,
+  ValuationExercise,
+  ValuationGraph,
+  ValuationStep,
 } from "./types.ts"
 
 export type ValidationResult =
@@ -229,6 +247,438 @@ function validateExercise(raw: unknown, kind: ExerciseKind, index: number, r: Re
 }
 
 
+const isFiniteNumber = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v)
+
+function validateStatementExercise(raw: unknown, index: number, r: Report): ThreeStatementExercise | null {
+  const at = `threeStatementExercises[${index}]`
+  if (!isRecord(raw)) {
+    r.error(`${at}: must be an object.`)
+    return null
+  }
+  const before = r.errors.length
+  const id = checkId(raw.id, ID_PREFIX.statementExercise, at, r)
+  const label = id ? `${at} (${id})` : at
+  if (!isText(raw.category, 80)) r.error(`${label}.category: required text (up to 80 characters).`)
+  if (!isText(raw.subcategory, 80)) r.error(`${label}.subcategory: required text (up to 80 characters).`)
+  if (!isText(raw.title, 200)) r.error(`${label}.title: required text.`)
+  if (!isText(raw.units, 40)) r.error(`${label}.units: required text such as "$m" (up to 40 characters).`)
+  if (!Array.isArray(raw.instructions) || raw.instructions.length === 0 || !raw.instructions.every((p) => isText(p))) {
+    r.error(`${label}.instructions: must be a non-empty list of text paragraphs.`)
+  }
+  let assumptions: Given[] = []
+  if (raw.assumptions !== undefined) {
+    if (!Array.isArray(raw.assumptions) || !raw.assumptions.every((g) => isRecord(g) && isText(g.label, 200) && isText(g.value, 500))) {
+      r.error(`${label}.assumptions: must be a list of { "label", "value" } text pairs.`)
+    } else assumptions = raw.assumptions.map((g) => ({ label: g.label, value: g.value }))
+  }
+  if (raw.decimals !== undefined && !(Number.isInteger(raw.decimals) && (raw.decimals as number) >= 0 && (raw.decimals as number) <= MAX_DECIMALS)) {
+    r.error(`${label}.decimals: must be a whole number from 0 to ${MAX_DECIMALS} when present.`)
+  }
+  if (!isFiniteNumber(raw.tolerance) || raw.tolerance <= 0) r.error(`${label}.tolerance: must be a number greater than 0 (how close a figure must be to count as correct).`)
+  if (!Array.isArray(raw.conceptIds) || raw.conceptIds.length === 0 || !raw.conceptIds.every((c) => typeof c === "string" && c)) {
+    r.error(`${label}.conceptIds: must be a non-empty list of concept IDs.`)
+  }
+
+  // Statements and their rows. Row IDs are unique across the whole exercise so steps can refer to them directly.
+  const statements: FinancialStatement[] = []
+  const rowIds = new Map<string, string>() // row id -> where it is defined
+  const numericRowIds = new Set<string>()
+  let requiredChanges = 0
+  if (!Array.isArray(raw.statements) || raw.statements.length === 0 || raw.statements.length > MAX_STATEMENTS) {
+    r.error(`${label}.statements: must be an ordered list of 1 to ${MAX_STATEMENTS} statements.`)
+  } else {
+    const statementIds = new Map<string, number>()
+    raw.statements.forEach((st: unknown, si: number) => {
+      const sat = `${label}.statements[${si}]`
+      if (!isRecord(st)) return r.error(`${sat}: must be an object.`)
+      const sid = checkId(st.id, ID_PREFIX.statement, sat, r)
+      if (sid) {
+        if (statementIds.has(sid)) r.error(`${sat}.id: duplicate statement id "${sid}" (also statements[${statementIds.get(sid)}]).`)
+        else statementIds.set(sid, si)
+      }
+      if (!isText(st.title, 200)) r.error(`${sat}.title: required text.`)
+      const rows: FinancialRow[] = []
+      if (!Array.isArray(st.rows) || st.rows.length === 0 || st.rows.length > MAX_STATEMENT_ROWS) {
+        r.error(`${sat}.rows: must be an ordered list of 1 to ${MAX_STATEMENT_ROWS} rows.`)
+      } else {
+        st.rows.forEach((row: unknown, ri: number) => {
+          const rat = `${sat}.rows[${ri}]`
+          if (!isRecord(row)) return r.error(`${rat}: must be an object.`)
+          const errorsBefore = r.errors.length
+          const rid = checkId(row.id, ID_PREFIX.row, rat, r)
+          if (rid) {
+            if (rowIds.has(rid)) r.error(`${rat}.id: duplicate row id "${rid}" (also ${rowIds.get(rid)}). Row ids must be unique within the exercise.`)
+            else rowIds.set(rid, `statements[${si}].rows[${ri}]`)
+          }
+          if (!isText(row.label, 200)) r.error(`${rat}.label: required text.`)
+          if (row.style !== undefined && !["header", "subtotal", "total"].includes(row.style as string)) {
+            r.error(`${rat}.style: must be one of header, subtotal, total.`)
+          }
+          if (row.indent !== undefined && !(Number.isInteger(row.indent) && (row.indent as number) >= 0 && (row.indent as number) <= MAX_INDENT)) {
+            r.error(`${rat}.indent: must be a whole number from 0 to ${MAX_INDENT}.`)
+          }
+          if (row.tolerance !== undefined && !(isFiniteNumber(row.tolerance) && row.tolerance > 0)) {
+            r.error(`${rat}.tolerance: must be a number greater than 0 when present.`)
+          }
+          if (row.style === "header") {
+            if (row.original !== undefined || row.correct !== undefined) r.error(`${rat}: a header row has no figures; remove "original" and "correct".`)
+          } else {
+            if (!isFiniteNumber(row.original)) r.error(`${rat}.original: required finite number (the starting figure).`)
+            if (!isFiniteNumber(row.correct)) r.error(`${rat}.correct: required finite number (the correct figure).`)
+          }
+          warnUnknown(row, ["id", "label", "style", "indent", "original", "correct", "tolerance"], rat, r)
+          if (r.errors.length === errorsBefore && rid) {
+            const out: FinancialRow = { id: rid, label: row.label as string }
+            if (row.style !== undefined) out.style = row.style as FinancialRow["style"]
+            if (row.indent !== undefined) out.indent = row.indent as number
+            if (row.style !== "header") {
+              out.original = row.original as number
+              out.correct = row.correct as number
+              numericRowIds.add(rid)
+              const tol = (row.tolerance as number | undefined) ?? (isFiniteNumber(raw.tolerance) ? raw.tolerance : 0)
+              if (Math.abs((row.correct as number) - (row.original as number)) > tol) requiredChanges++
+            }
+            if (row.tolerance !== undefined) out.tolerance = row.tolerance as number
+            rows.push(out)
+          }
+        })
+      }
+      warnUnknown(st, ["id", "title", "rows"], sat, r)
+      if (sid && isText(st.title, 200)) statements.push({ id: sid, title: st.title, rows })
+    })
+  }
+  if (rowIds.size > 0 && numericRowIds.size === 0 && r.errors.length === before) r.error(`${label}.statements: at least one row must have figures.`)
+  if (r.errors.length === before && requiredChanges === 0) {
+    r.warn(`${label}: no row's correct figure differs from its original, so the exercise asks for no changes.`)
+  }
+
+  // Worked solution: every row and connection must point at a row that exists.
+  const steps: ExplanationStep[] = []
+  if (!Array.isArray(raw.steps) || raw.steps.length === 0 || raw.steps.length > MAX_STEPS) {
+    r.error(`${label}.steps: must be an ordered list of 1 to ${MAX_STEPS} explanation steps.`)
+  } else {
+    const stepIds = new Map<string, number>()
+    raw.steps.forEach((step: unknown, ti: number) => {
+      const tat = `${label}.steps[${ti}]`
+      if (!isRecord(step)) return r.error(`${tat}: must be an object.`)
+      const errorsBefore = r.errors.length
+      const tid = checkId(step.id, ID_PREFIX.step, tat, r)
+      if (tid) {
+        if (stepIds.has(tid)) r.error(`${tat}.id: duplicate step id "${tid}" (also steps[${stepIds.get(tid)}]).`)
+        else stepIds.set(tid, ti)
+      }
+      if (!isText(step.title, 200)) r.error(`${tat}.title: required text.`)
+      if (!isText(step.text, 2000)) r.error(`${tat}.text: required text (up to 2000 characters).`)
+      const stepRows: string[] = []
+      if (step.rows !== undefined) {
+        if (!Array.isArray(step.rows) || !step.rows.every((x) => typeof x === "string" && x)) {
+          r.error(`${tat}.rows: must be a list of row IDs when present.`)
+        } else {
+          for (const rid of step.rows as string[]) {
+            if (rowIds.size > 0 && !rowIds.has(rid)) r.error(`${tat}.rows: unknown row "${rid}". It must be a row id defined in this exercise's statements.`)
+            else stepRows.push(rid)
+          }
+        }
+      }
+      const connections: ExplanationConnection[] = []
+      if (step.connections !== undefined) {
+        if (!Array.isArray(step.connections)) r.error(`${tat}.connections: must be a list when present.`)
+        else {
+          step.connections.forEach((c: unknown, ci: number) => {
+            const cat = `${tat}.connections[${ci}]`
+            if (!isRecord(c)) return r.error(`${cat}: must be an object with "from" and "to".`)
+            let ok = true
+            for (const end of ["from", "to"] as const) {
+              const v = c[end]
+              if (typeof v !== "string" || !v) {
+                ok = false
+                r.error(`${cat}.${end}: required row id.`)
+              } else if (rowIds.size > 0 && !numericRowIds.has(v)) {
+                ok = false
+                r.error(
+                  rowIds.has(v)
+                    ? `${cat}.${end}: "${v}" is a header row; connections must join rows that have figures.`
+                    : `${cat}.${end}: unknown row "${v}". It must be a row id defined in this exercise's statements.`,
+                )
+              }
+            }
+            if (ok && c.from === c.to) {
+              ok = false
+              r.error(`${cat}: a connection must join two different rows.`)
+            }
+            if (c.label !== undefined && !isText(c.label, 120)) {
+              ok = false
+              r.error(`${cat}.label: must be short text (up to 120 characters) when present.`)
+            }
+            warnUnknown(c, ["from", "to", "label"], cat, r)
+            if (ok) {
+              const out: ExplanationConnection = { from: c.from as string, to: c.to as string }
+              if (c.label !== undefined) out.label = c.label as string
+              connections.push(out)
+            }
+          })
+        }
+      }
+      if (stepRows.length === 0 && connections.length === 0 && r.errors.length === errorsBefore) {
+        r.warn(`${tat}: no rows or connections, so nothing will be highlighted for this step.`)
+      }
+      warnUnknown(step, ["id", "title", "text", "rows", "connections"], tat, r)
+      if (tid && isText(step.title, 200) && isText(step.text, 2000) && r.errors.length === errorsBefore) {
+        steps.push({ id: tid, title: step.title, text: step.text, rows: stepRows, connections })
+      }
+    })
+  }
+
+  warnUnknown(
+    raw,
+    ["id", "category", "subcategory", "title", "instructions", "assumptions", "units", "decimals", "tolerance", "conceptIds", "statements", "steps"],
+    label,
+    r,
+  )
+  if (r.errors.length > before || !id) return null
+  const out: ThreeStatementExercise = {
+    id,
+    category: (raw.category as string).trim(),
+    subcategory: (raw.subcategory as string).trim(),
+    title: raw.title as string,
+    instructions: raw.instructions as string[],
+    assumptions,
+    units: raw.units as string,
+    tolerance: raw.tolerance as number,
+    conceptIds: raw.conceptIds as string[],
+    statements,
+    steps,
+  }
+  if (raw.decimals !== undefined) out.decimals = raw.decimals as number
+  return out
+}
+
+/** True if the directed pairs contain a cycle. */
+function hasCycle(nodes: string[], pairs: [string, string][]): boolean {
+  const next = new Map<string, string[]>(nodes.map((n) => [n, []]))
+  for (const [a, b] of pairs) next.get(a)?.push(b)
+  const state = new Map<string, 1 | 2>() // 1 = on the current path, 2 = finished
+  const visit = (n: string): boolean => {
+    if (state.get(n) === 2) return false
+    if (state.get(n) === 1) return true
+    state.set(n, 1)
+    for (const m of next.get(n) ?? []) if (visit(m)) return true
+    state.set(n, 2)
+    return false
+  }
+  return nodes.some(visit)
+}
+
+function validateValuationExercise(raw: unknown, index: number, r: Report): ValuationExercise | null {
+  const at = `valuationExercises[${index}]`
+  if (!isRecord(raw)) {
+    r.error(`${at}: must be an object.`)
+    return null
+  }
+  const before = r.errors.length
+  const id = checkId(raw.id, ID_PREFIX.valuationExercise, at, r)
+  const label = id ? `${at} (${id})` : at
+  if (!isText(raw.category, 80)) r.error(`${label}.category: required text (up to 80 characters).`)
+  if (!isText(raw.subcategory, 80)) r.error(`${label}.subcategory: required text (up to 80 characters).`)
+  if (!isText(raw.title, 200)) r.error(`${label}.title: required text.`)
+  if (!isText(raw.task, 600)) r.error(`${label}.task: required text stating clearly what the learner must build (up to 600 characters).`)
+  if (!Array.isArray(raw.instructions) || raw.instructions.length === 0 || !raw.instructions.every((p) => isText(p))) {
+    r.error(`${label}.instructions: must be a non-empty list of text paragraphs.`)
+  }
+  let assumptions: Given[] = []
+  if (raw.assumptions !== undefined) {
+    if (!Array.isArray(raw.assumptions) || !raw.assumptions.every((g) => isRecord(g) && isText(g.label, 200) && isText(g.value, 500))) {
+      r.error(`${label}.assumptions: must be a list of { "label", "value" } text pairs.`)
+    } else assumptions = raw.assumptions.map((g) => ({ label: g.label, value: g.value }))
+  }
+  if (!Array.isArray(raw.conceptIds) || raw.conceptIds.length === 0 || !raw.conceptIds.every((c) => typeof c === "string" && c)) {
+    r.error(`${label}.conceptIds: must be a non-empty list of concept IDs.`)
+  }
+
+  // The step bank.
+  const steps: ValuationStep[] = []
+  const stepIds = new Set<string>()
+  if (!Array.isArray(raw.steps) || raw.steps.length < 2 || raw.steps.length > MAX_VALUATION_STEPS) {
+    r.error(`${label}.steps: must be a list of 2 to ${MAX_VALUATION_STEPS} steps (distractors included).`)
+  } else {
+    const seen = new Map<string, number>()
+    raw.steps.forEach((st: unknown, i: number) => {
+      const sat = `${label}.steps[${i}]`
+      if (!isRecord(st)) return r.error(`${sat}: must be an object.`)
+      const errorsBefore = r.errors.length
+      const sid = checkId(st.id, ID_PREFIX.valuationStep, sat, r)
+      if (sid) {
+        if (seen.has(sid)) r.error(`${sat}.id: duplicate step id "${sid}" (also steps[${seen.get(sid)}]).`)
+        else {
+          seen.set(sid, i)
+          stepIds.add(sid)
+        }
+      }
+      if (!isText(st.label, 120)) r.error(`${sat}.label: required text (up to 120 characters).`)
+      if (st.detail !== undefined && !isText(st.detail, 300)) r.error(`${sat}.detail: must be text when present.`)
+      if (!isText(st.explanation, 1000)) r.error(`${sat}.explanation: required text saying why this step belongs, or why it is a distractor.`)
+      warnUnknown(st, ["id", "label", "detail", "explanation"], sat, r)
+      if (r.errors.length === errorsBefore && sid) {
+        const out: ValuationStep = { id: sid, label: st.label as string, explanation: st.explanation as string }
+        if (st.detail !== undefined) out.detail = st.detail as string
+        steps.push(out)
+      }
+    })
+  }
+
+  // Distractors: steps that belong to no accepted solution.
+  const distractors: string[] = []
+  if (raw.distractors !== undefined) {
+    if (!Array.isArray(raw.distractors) || !raw.distractors.every((d) => typeof d === "string" && d)) {
+      r.error(`${label}.distractors: must be a list of step IDs when present.`)
+    } else {
+      const seenD = new Set<string>()
+      for (const d of raw.distractors as string[]) {
+        if (stepIds.size > 0 && !stepIds.has(d)) r.error(`${label}.distractors: unknown step "${d}". It must be a step id defined in this exercise's steps.`)
+        else if (seenD.has(d)) r.warn(`${label}.distractors: "${d}" is listed more than once.`)
+        else {
+          seenD.add(d)
+          distractors.push(d)
+        }
+      }
+    }
+  }
+
+  // Accepted solutions.
+  const graphs: ValuationGraph[] = []
+  const used = new Set<string>()
+  const edgeIds = new Map<string, string>()
+  if (!Array.isArray(raw.solutions) || raw.solutions.length === 0 || raw.solutions.length > MAX_VALUATION_GRAPHS) {
+    r.error(`${label}.solutions: must be a list of 1 to ${MAX_VALUATION_GRAPHS} accepted solution graphs.`)
+  } else {
+    const graphIds = new Map<string, number>()
+    raw.solutions.forEach((g: unknown, gi: number) => {
+      const gat = `${label}.solutions[${gi}]`
+      if (!isRecord(g)) return r.error(`${gat}: must be an object.`)
+      const errorsBefore = r.errors.length
+      const gid = checkId(g.id, ID_PREFIX.valuationGraph, gat, r)
+      if (gid) {
+        if (graphIds.has(gid)) r.error(`${gat}.id: duplicate solution id "${gid}" (also solutions[${graphIds.get(gid)}]).`)
+        else graphIds.set(gid, gi)
+      }
+      if (!isText(g.title, 200)) r.error(`${gat}.title: required text.`)
+      const gSteps: string[] = []
+      if (!Array.isArray(g.steps) || g.steps.length < 2 || !g.steps.every((x) => typeof x === "string" && x)) {
+        r.error(`${gat}.steps: must be a list of at least 2 step IDs.`)
+      } else {
+        for (const sid of g.steps as string[]) {
+          if (stepIds.size > 0 && !stepIds.has(sid)) r.error(`${gat}.steps: unknown step "${sid}". It must be a step id defined in this exercise's steps.`)
+          else if (distractors.includes(sid)) r.error(`${gat}.steps: "${sid}" is listed as a distractor, so it cannot be part of a solution.`)
+          else if (gSteps.includes(sid)) r.error(`${gat}.steps: "${sid}" is listed more than once.`)
+          else {
+            gSteps.push(sid)
+            used.add(sid)
+          }
+        }
+      }
+      const inGraph = new Set(gSteps)
+      const gEdges: ValuationEdge[] = []
+      const pairs = new Set<string>()
+      const acyclic: [string, string][] = []
+      const checkRef = (ref: unknown, rat: string): ValuationEdgeRef | null => {
+        if (!isRecord(ref)) {
+          r.error(`${rat}: must be an object with "from" and "to".`)
+          return null
+        }
+        let ok = true
+        for (const end of ["from", "to"] as const) {
+          const v = ref[end]
+          if (typeof v !== "string" || !v) {
+            ok = false
+            r.error(`${rat}.${end}: required step id.`)
+          } else if (inGraph.size > 0 && !inGraph.has(v)) {
+            ok = false
+            r.error(`${rat}.${end}: "${v}" is not one of this solution's steps.`)
+          }
+        }
+        if (!ok) return null
+        if (ref.from === ref.to) {
+          r.error(`${rat}: a connection must join two different steps.`)
+          return null
+        }
+        const key = `${ref.from}>${ref.to}`
+        if (pairs.has(key)) {
+          r.error(`${rat}: the connection ${ref.from} -> ${ref.to} appears more than once in this solution.`)
+          return null
+        }
+        pairs.add(key)
+        return { from: ref.from as string, to: ref.to as string }
+      }
+      if (!Array.isArray(g.edges) || g.edges.length === 0 || g.edges.length > MAX_GRAPH_EDGES) {
+        r.error(`${gat}.edges: must be a list of 1 to ${MAX_GRAPH_EDGES} connections.`)
+      } else {
+        g.edges.forEach((e: unknown, ei: number) => {
+          const eat = `${gat}.edges[${ei}]`
+          if (!isRecord(e)) return r.error(`${eat}: must be an object.`)
+          const edgeErrors = r.errors.length
+          const eid = checkId(e.id, ID_PREFIX.valuationEdge, eat, r)
+          if (eid) {
+            if (edgeIds.has(eid)) r.error(`${eat}.id: duplicate connection id "${eid}" (also ${edgeIds.get(eid)}). Connection ids must be unique within the exercise.`)
+            else edgeIds.set(eid, `solutions[${gi}].edges[${ei}]`)
+          }
+          const ref = checkRef(e, eat)
+          if (!isText(e.explanation, 1000)) r.error(`${eat}.explanation: required text saying why this step comes before the other.`)
+          if (e.optional !== undefined && typeof e.optional !== "boolean") r.error(`${eat}.optional: must be true or false when present.`)
+          const alternatives: ValuationEdgeRef[] = []
+          if (e.alternatives !== undefined) {
+            if (!Array.isArray(e.alternatives)) r.error(`${eat}.alternatives: must be a list when present.`)
+            else {
+              e.alternatives.forEach((a: unknown, ai: number) => {
+                const alt = checkRef(a, `${eat}.alternatives[${ai}]`)
+                if (alt) alternatives.push(alt)
+              })
+            }
+          }
+          warnUnknown(e, ["id", "from", "to", "explanation", "optional", "alternatives"], eat, r)
+          if (ref && eid && r.errors.length === edgeErrors) {
+            acyclic.push([ref.from, ref.to])
+            const out: ValuationEdge = { id: eid, from: ref.from, to: ref.to, explanation: e.explanation as string }
+            if (e.optional) out.optional = true
+            if (alternatives.length > 0) out.alternatives = alternatives
+            gEdges.push(out)
+          }
+        })
+        if (r.errors.length === errorsBefore && hasCycle(gSteps, acyclic)) {
+          r.error(`${gat}.edges: the connections form a cycle. A process must be a directed graph with no loops.`)
+        }
+        if (gEdges.length > 0 && gEdges.every((e) => e.optional)) r.error(`${gat}.edges: at least one connection must be required (not optional).`)
+      }
+      warnUnknown(g, ["id", "title", "steps", "edges"], gat, r)
+      if (gid && r.errors.length === errorsBefore) graphs.push({ id: gid, title: g.title as string, steps: gSteps, edges: gEdges })
+    })
+  }
+
+  // Every non-distractor step must be used by a solution, or it could never be placed correctly.
+  if (r.errors.length === before) {
+    for (const st of steps) {
+      if (!distractors.includes(st.id) && !used.has(st.id)) {
+        r.error(`${label}.steps: "${st.id}" is used by no solution and is not listed as a distractor. List it in "distractors" or add it to a solution.`)
+      }
+    }
+  }
+
+  warnUnknown(raw, ["id", "category", "subcategory", "title", "task", "instructions", "assumptions", "conceptIds", "steps", "distractors", "solutions"], label, r)
+  if (r.errors.length > before || !id) return null
+  return {
+    id,
+    category: (raw.category as string).trim(),
+    subcategory: (raw.subcategory as string).trim(),
+    title: raw.title as string,
+    task: raw.task as string,
+    instructions: raw.instructions as string[],
+    assumptions,
+    conceptIds: raw.conceptIds as string[],
+    steps,
+    distractors,
+    solutions: graphs,
+  }
+}
+
 function validateChoice(raw: unknown, index: number, r: Report): MultipleChoice | null {
   const at = `multipleChoice[${index}]`
   if (!isRecord(raw)) {
@@ -366,12 +816,12 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
   for (const key of ["title", "description", "exportedAt"] as const) {
     if (raw[key] !== undefined && !isText(raw[key], 1000)) r.error(`${key}: must be text when present.`)
   }
-  for (const key of ["concepts", "questions", "scenarios", "multipleChoice", "processes"] as const) {
+  for (const key of ["concepts", "questions", "scenarios", "multipleChoice", "processes", "threeStatementExercises", "valuationExercises"] as const) {
     if (raw[key] !== undefined && !Array.isArray(raw[key])) r.error(`${key}: must be a list when present.`)
   }
   warnUnknown(
     raw,
-    ["schemaVersion", "contentVersion", "title", "description", "exportedAt", "concepts", "questions", "scenarios", "multipleChoice", "processes"],
+    ["schemaVersion", "contentVersion", "title", "description", "exportedAt", "concepts", "questions", "scenarios", "multipleChoice", "processes", "threeStatementExercises", "valuationExercises"],
     "pack",
     r,
   )
@@ -384,9 +834,11 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
   const scenarios = list("scenarios").map((s, i) => validateExercise(s, "scenario", i, r))
   const choices = list("multipleChoice").map((c, i) => validateChoice(c, i, r))
   const processes = list("processes").map((p, i) => validateProcess(p, i, r))
+  const statementExercises = list("threeStatementExercises").map((e, i) => validateStatementExercise(e, i, r))
+  const valuationExercises = list("valuationExercises").map((e, i) => validateValuationExercise(e, i, r))
 
-  if (concepts.length + questions.length + scenarios.length + choices.length + processes.length === 0) {
-    r.error("The pack contains no concepts, questions, scenarios, multiple-choice questions or processes.")
+  if (concepts.length + questions.length + scenarios.length + choices.length + processes.length + statementExercises.length + valuationExercises.length === 0) {
+    r.error("The pack contains no concepts, questions, scenarios, multiple-choice questions, processes, three-statement exercises or valuation exercises.")
   }
 
   // Duplicate IDs anywhere in the pack, including stage IDs inside processes.
@@ -401,6 +853,8 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
   list("questions").forEach((q, i) => isRecord(q) && track(q.id, `questions[${i}]`))
   list("scenarios").forEach((s, i) => isRecord(s) && track(s.id, `scenarios[${i}]`))
   list("multipleChoice").forEach((c, i) => isRecord(c) && track(c.id, `multipleChoice[${i}]`))
+  list("threeStatementExercises").forEach((e, i) => isRecord(e) && track(e.id, `threeStatementExercises[${i}]`))
+  list("valuationExercises").forEach((e, i) => isRecord(e) && track(e.id, `valuationExercises[${i}]`))
   list("processes").forEach((p, i) => {
     if (!isRecord(p)) return
     track(p.id, `processes[${i}]`)
@@ -429,6 +883,8 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
   check(list("questions"), "questions")
   check(list("scenarios"), "scenarios")
   check(list("multipleChoice"), "multipleChoice")
+  check(list("threeStatementExercises"), "threeStatementExercises")
+  check(list("valuationExercises"), "valuationExercises")
 
   // Each stage must point at a multiple-choice question in this pack or already in the app,
   // and a stage ID may not already belong to a different process.
@@ -462,6 +918,8 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
     scenarios: scenarios as Exercise[],
     multipleChoice: choices as MultipleChoice[],
     processes: processes as Process[],
+    threeStatementExercises: statementExercises as ThreeStatementExercise[],
+    valuationExercises: valuationExercises as ValuationExercise[],
   }
   if (raw.title !== undefined) pack.title = raw.title as string
   if (raw.description !== undefined) pack.description = raw.description as string
