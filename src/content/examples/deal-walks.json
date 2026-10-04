@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "example-1",
+  "title": "Example: Deal Walk",
+  "multipleChoice": [
+    {
+      "id": "mc-example-001",
+      "category": "M&A",
+      "subcategory": "Sell-side process",
+      "title": "First step (example)",
+      "prompt": "In a sell-side process, what usually happens before the buyer sees the confidential information memorandum?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The buyer signs a non-disclosure agreement"
+        },
+        {
+          "id": "b",
+          "text": "The buyer submits a binding offer"
+        },
+        {
+          "id": "c",
+          "text": "The purchase agreement is signed"
+        }
+      ],
+      "correctOptionId": "a",
+      "explanation": [
+        "Buyers sign an NDA first so that confidential information stays protected.",
+        "Binding offers and the purchase agreement come much later."
+      ],
+      "conceptIds": [
+        "c-nda",
+        "c-cim"
+      ]
+    },
+    {
+      "id": "mc-example-002",
+      "category": "M&A",
+      "subcategory": "Sell-side process",
+      "title": "Indications of interest (example)",
+      "prompt": "What is an indication of interest?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A non-binding statement of price range and terms"
+        },
+        {
+          "id": "b",
+          "text": "A signed purchase agreement"
+        }
+      ],
+      "correctOptionId": "a",
+      "explanation": [
+        "It shows a buyer's preliminary view of value so the seller can choose who continues."
+      ],
+      "conceptIds": [
+        "c-ioi"
+      ]
+    }
+  ],
+  "processes": [
+    {
+      "id": "p-example-001",
+      "title": "Example sell-side walk",
+      "description": "Two stages for illustration.",
+      "stages": [
+        {
+          "id": "ps-example-01",
+          "title": "Confidentiality",
+          "choiceId": "mc-example-001"
+        },
+        {
+          "id": "ps-example-02",
+          "title": "First round bids",
+          "choiceId": "mc-example-002"
+        }
+      ]
+    }
+  ]
+}

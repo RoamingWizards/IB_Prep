@@ -1,0 +1,301 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "sample-6",
+  "title": "Behavioural interview questions (sample)",
+  "description": "Core behavioural prompts with guidance, answer frameworks and self-review checklists. They contain no personal answers.",
+  "behaviouralQuestions": [
+    {
+      "id": "bq-intro-001",
+      "category": "Introduction",
+      "title": "Tell me about yourself",
+      "prompt": "Tell me about yourself.",
+      "guidance": [
+        "Give a short, structured story rather than reciting your CV: where you are now, how you got here, and where you are heading.",
+        "Aim for 60 to 90 seconds. End by connecting your path to investment banking and to this conversation."
+      ],
+      "framework": {
+        "name": "Present, Past, Future",
+        "steps": [
+          {
+            "label": "Present",
+            "hint": "What you are doing now (course, role) and one headline strength or result."
+          },
+          {
+            "label": "Past",
+            "hint": "Two or three experiences that built your skills and led you to finance, in order."
+          },
+          {
+            "label": "Future",
+            "hint": "Why investment banking next, and what you want to contribute."
+          }
+        ]
+      },
+      "checklist": [
+        "Under 90 seconds",
+        "Has a clear beginning, middle and end",
+        "Mentions one or two specific achievements",
+        "Ends by linking to investment banking",
+        "Sounds like me, not a script"
+      ]
+    },
+    {
+      "id": "bq-why-ib-001",
+      "category": "Motivation",
+      "title": "Why investment banking?",
+      "prompt": "Why do you want to work in investment banking?",
+      "guidance": [
+        "Interviewers look for a reason that is specific, evidenced and honest. Avoid generic answers about money or prestige.",
+        "Show you understand the job: long hours, learning curve, client work. Then say why that appeals to you."
+      ],
+      "framework": {
+        "name": "Interest, Evidence, Fit",
+        "steps": [
+          {
+            "label": "Interest",
+            "hint": "What draws you to the work itself: deals, valuation, advising companies."
+          },
+          {
+            "label": "Evidence",
+            "hint": "What you have done to test that interest: courses, deals followed, internships, competitions."
+          },
+          {
+            "label": "Fit",
+            "hint": "Why your skills and temperament suit the role and the training."
+          }
+        ]
+      },
+      "checklist": [
+        "Gives a reason beyond pay and prestige",
+        "Backs the interest with something I have actually done",
+        "Shows I understand what the job involves",
+        "Mentions at least one specific deal or sector",
+        "Stays under 90 seconds"
+      ]
+    },
+    {
+      "id": "bq-why-firm-001",
+      "category": "Motivation",
+      "title": "Why this firm?",
+      "firm": "Your target firm",
+      "prompt": "Why do you want to work at this firm in particular?",
+      "guidance": [
+        "Make it specific to the firm: its sectors, recent deals, culture and the people you spoke to. Replace the placeholder firm name when you write your answer.",
+        "Create your own copy of this question for each firm you are interviewing with, so each answer is saved separately."
+      ],
+      "framework": {
+        "name": "Firm, People, Me",
+        "steps": [
+          {
+            "label": "Firm",
+            "hint": "One or two things the firm is known for that matter to you, such as a sector or deal."
+          },
+          {
+            "label": "People",
+            "hint": "Who you spoke to or what you learned from events or alumni."
+          },
+          {
+            "label": "Me",
+            "hint": "How your background and goals line up with what the firm does."
+          }
+        ]
+      },
+      "checklist": [
+        "Names something only this firm could be described by",
+        "Mentions a recent deal, team or conversation",
+        "Does not repeat my answer for another firm",
+        "Links back to my own background",
+        "Under 90 seconds"
+      ]
+    },
+    {
+      "id": "bq-leadership-001",
+      "category": "Experience",
+      "title": "Tell me about a time you led a team",
+      "prompt": "Tell me about a time you showed leadership.",
+      "guidance": [
+        "Leadership does not need a title. Choose an example where you set direction, organised others or took ownership when it was unclear who would.",
+        "Be clear about your own role, then show how you brought others with you."
+      ],
+      "framework": {
+        "name": "STAR",
+        "steps": [
+          {
+            "label": "Situation",
+            "hint": "Set the scene briefly: the team, the goal, why it needed leading."
+          },
+          {
+            "label": "Task",
+            "hint": "What you were responsible for and the challenge."
+          },
+          {
+            "label": "Action",
+            "hint": "The specific steps you took to organise, motivate or decide."
+          },
+          {
+            "label": "Result",
+            "hint": "The outcome, with numbers if you can, and what the team or you learned."
+          }
+        ]
+      },
+      "checklist": [
+        "Opens with a specific situation, not a general statement",
+        "Says what I personally was responsible for",
+        "Describes what I did (I), not only what the team did (we)",
+        "Gives a concrete result, with numbers where possible",
+        "Says what I learned or would do differently",
+        "Fits in about two minutes"
+      ]
+    },
+    {
+      "id": "bq-teamwork-001",
+      "category": "Experience",
+      "title": "Tell me about a time you worked in a team",
+      "prompt": "Tell me about a time you worked effectively in a team.",
+      "guidance": [
+        "Pick a team situation with a real difficulty (tight deadline, uneven workload) rather than a smooth one.",
+        "Show what you contributed and how you supported others."
+      ],
+      "framework": {
+        "name": "STAR",
+        "steps": [
+          {
+            "label": "Situation",
+            "hint": "The team, the project and the pressure it was under."
+          },
+          {
+            "label": "Task",
+            "hint": "Your part and what the team needed from you."
+          },
+          {
+            "label": "Action",
+            "hint": "What you did to contribute, coordinate or help a teammate."
+          },
+          {
+            "label": "Result",
+            "hint": "The result for the project and how the team worked afterwards."
+          }
+        ]
+      },
+      "checklist": [
+        "Opens with a specific situation, not a general statement",
+        "Says what I personally was responsible for",
+        "Describes what I did (I), not only what the team did (we)",
+        "Gives a concrete result, with numbers where possible",
+        "Says what I learned or would do differently",
+        "Fits in about two minutes"
+      ]
+    },
+    {
+      "id": "bq-conflict-001",
+      "category": "Experience",
+      "title": "Tell me about a time you disagreed with someone",
+      "prompt": "Tell me about a time you had a conflict or disagreement with a colleague or teammate, and how you handled it.",
+      "guidance": [
+        "Choose a real but professional disagreement. Focus on how you listened, found the underlying issue and reached an outcome.",
+        "Avoid blaming the other person; show maturity and respect."
+      ],
+      "framework": {
+        "name": "STAR",
+        "steps": [
+          {
+            "label": "Situation",
+            "hint": "Who disagreed and about what, in one or two sentences."
+          },
+          {
+            "label": "Task",
+            "hint": "What was at stake for you and the team."
+          },
+          {
+            "label": "Action",
+            "hint": "How you raised it, listened and worked toward agreement."
+          },
+          {
+            "label": "Result",
+            "hint": "How it ended and what you do differently now."
+          }
+        ]
+      },
+      "checklist": [
+        "Opens with a specific situation, not a general statement",
+        "Says what I personally was responsible for",
+        "Describes what I did (I), not only what the team did (we)",
+        "Gives a concrete result, with numbers where possible",
+        "Says what I learned or would do differently",
+        "Fits in about two minutes"
+      ]
+    },
+    {
+      "id": "bq-failure-001",
+      "category": "Experience",
+      "title": "Tell me about a time you failed",
+      "prompt": "Tell me about a time you failed or made a significant mistake.",
+      "guidance": [
+        "Choose a genuine mistake with a real consequence, own it plainly and spend most of the answer on what you changed afterwards.",
+        "Avoid disguised strengths such as working too hard."
+      ],
+      "framework": {
+        "name": "STAR",
+        "steps": [
+          {
+            "label": "Situation",
+            "hint": "What you were doing and what went wrong."
+          },
+          {
+            "label": "Task",
+            "hint": "What you were meant to deliver or protect."
+          },
+          {
+            "label": "Action",
+            "hint": "What you did once you knew, including telling people and fixing it."
+          },
+          {
+            "label": "Result",
+            "hint": "The outcome and the specific habit or process you changed."
+          }
+        ]
+      },
+      "checklist": [
+        "Opens with a specific situation, not a general statement",
+        "Says what I personally was responsible for",
+        "Describes what I did (I), not only what the team did (we)",
+        "Gives a concrete result, with numbers where possible",
+        "Says what I learned or would do differently",
+        "Fits in about two minutes"
+      ]
+    },
+    {
+      "id": "bq-strengths-weaknesses-001",
+      "category": "Self-assessment",
+      "title": "Strengths and weaknesses",
+      "prompt": "What are your greatest strengths and weaknesses?",
+      "guidance": [
+        "Choose one or two strengths that matter in banking, each with a short example. Choose a real weakness that is not essential to the job and show what you are doing about it.",
+        "Avoid clichés such as perfectionism."
+      ],
+      "framework": {
+        "name": "Claim, Evidence, Improvement",
+        "steps": [
+          {
+            "label": "Strength",
+            "hint": "One strength relevant to the role, stated plainly."
+          },
+          {
+            "label": "Evidence",
+            "hint": "A short example that proves it."
+          },
+          {
+            "label": "Weakness and fix",
+            "hint": "A real weakness and the concrete step you are taking to improve it."
+          }
+        ]
+      },
+      "checklist": [
+        "Strength is relevant to banking and evidenced",
+        "Weakness is real, not a disguised strength",
+        "Says what I am doing to improve",
+        "Balanced: not all strength or all weakness",
+        "Under 90 seconds"
+      ]
+    }
+  ]
+}

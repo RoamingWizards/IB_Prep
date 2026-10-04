@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "example-1",
+  "title": "Example: concepts with prerequisites",
+  "concepts": [
+    {
+      "id": "c-example-credit-basics",
+      "name": "Credit basics (example)",
+      "summary": "How lenders think about risk and return."
+    },
+    {
+      "id": "c-example-credit-spreads",
+      "name": "Credit spreads (example)",
+      "summary": "The yield premium over a risk-free rate.",
+      "prerequisiteIds": [
+        "c-example-credit-basics",
+        "c-net-debt"
+      ]
+    }
+  ]
+}

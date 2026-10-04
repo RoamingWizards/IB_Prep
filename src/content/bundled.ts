@@ -7,18 +7,20 @@ import maSellSidePack from "./packs/ma-sell-side.json"
 import threeStatementsPack from "./packs/three-statements-depreciation.json"
 import valuationPack from "./packs/valuation-dcf.json"
 import quickMathPack from "./packs/quick-maths-finance.json"
+import behaviouralPack from "./packs/behavioural-sample.json"
 import { SCHEMA_VERSION } from "./schema.ts"
 import { NO_KNOWN, validatePack } from "./validate.ts"
 import type { Bank, Concept, ContentPack, Exercise } from "./types.ts"
 
-export const BUNDLED_CONTENT_VERSION = "sample-5"
+export const BUNDLED_CONTENT_VERSION = "sample-6"
 
 // The deal-walk, three-statement and valuation packs are ordinary content packs, kept as separate files so they double as format examples.
 const dealWalkPacks = [maSellSidePack, ipoPack] as unknown as ContentPack[]
 const statementPacks = [threeStatementsPack] as unknown as ContentPack[]
 const valuationPacks = [valuationPack] as unknown as ContentPack[]
 const quickMathPacks = [quickMathPack] as unknown as ContentPack[]
-const allPacks = [...dealWalkPacks, ...statementPacks, ...valuationPacks, ...quickMathPacks]
+const behaviouralPacks = [behaviouralPack] as unknown as ContentPack[]
+const allPacks = [...dealWalkPacks, ...statementPacks, ...valuationPacks, ...quickMathPacks, ...behaviouralPacks]
 
 export const bundledBank: Bank = {
   concepts: [...(conceptsJson as Concept[]), ...allPacks.flatMap((p) => p.concepts ?? [])],
@@ -29,6 +31,7 @@ export const bundledBank: Bank = {
   threeStatementExercises: statementPacks.flatMap((p) => p.threeStatementExercises ?? []),
   valuationExercises: valuationPacks.flatMap((p) => p.valuationExercises ?? []),
   quickMathQuestions: quickMathPacks.flatMap((p) => p.quickMathQuestions ?? []),
+  behaviouralQuestions: behaviouralPacks.flatMap((p) => p.behaviouralQuestions ?? []),
 }
 
 // Fail loudly in development if the shipped content breaks the schema the importer enforces.

@@ -191,6 +191,29 @@ export interface QuickMathQuestion {
   explanation: string // a short worked solution
 }
 
+/** One step of an answer framework such as STAR: what it is called and what to put in it. */
+export interface FrameworkStep {
+  label: string
+  hint: string
+}
+
+export interface AnswerFramework {
+  name: string // for example "STAR"
+  steps: FrameworkStep[]
+}
+
+/** A behavioural interview question with optional guidance, answer framework and self-review checklist. Never holds a personal answer. */
+export interface BehaviouralQuestion {
+  id: string // "bq-…"
+  category: string // for example "Motivation" or "Experience"; the category selector is derived from this
+  title: string // short name shown in lists and History
+  prompt: string // the question as an interviewer would ask it
+  firm?: string // set for a firm-specific prompt
+  guidance?: string[] // paragraphs
+  framework?: AnswerFramework
+  checklist?: string[] // items to tick when reviewing a practice answer
+}
+
 export interface ContentPack {
   schemaVersion: number
   contentVersion: string
@@ -205,6 +228,7 @@ export interface ContentPack {
   threeStatementExercises?: ThreeStatementExercise[]
   valuationExercises?: ValuationExercise[]
   quickMathQuestions?: QuickMathQuestion[]
+  behaviouralQuestions?: BehaviouralQuestion[]
 }
 
 /** All content available to the app at one time. */
@@ -217,4 +241,5 @@ export interface Bank {
   threeStatementExercises: ThreeStatementExercise[]
   valuationExercises: ValuationExercise[]
   quickMathQuestions: QuickMathQuestion[]
+  behaviouralQuestions: BehaviouralQuestion[]
 }

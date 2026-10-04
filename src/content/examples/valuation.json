@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "example-1",
+  "title": "Example: Valuation Builder exercise",
+  "valuationExercises": [
+    {
+      "id": "vx-example-001",
+      "category": "Valuation",
+      "subcategory": "DCF",
+      "title": "Order a short DCF (example)",
+      "task": "Build the order of a short unlevered DCF, from the forecast to enterprise value.",
+      "instructions": [
+        "Drag the steps you need onto the canvas and draw an arrow from each step to the step that depends on it.",
+        "Some steps in the bank do not belong in this process."
+      ],
+      "assumptions": [
+        {
+          "label": "Approach",
+          "value": "Unlevered free cash flows discounted at WACC"
+        }
+      ],
+      "conceptIds": [
+        "c-dcf",
+        "c-ufcf",
+        "c-wacc",
+        "c-enterprise-value"
+      ],
+      "steps": [
+        {
+          "id": "vs-forecast",
+          "label": "Forecast unlevered free cash flow",
+          "explanation": "Everything else in the DCF is built on the cash flow forecast."
+        },
+        {
+          "id": "vs-wacc",
+          "label": "Calculate WACC",
+          "explanation": "The discount rate does not depend on the forecast, so this can happen in parallel."
+        },
+        {
+          "id": "vs-discount",
+          "label": "Discount the cash flows at WACC",
+          "explanation": "Needs both the forecast cash flows and the discount rate."
+        },
+        {
+          "id": "vs-ev",
+          "label": "Sum the present values to get enterprise value",
+          "explanation": "Enterprise value is the total of the discounted cash flows."
+        },
+        {
+          "id": "vs-d-lfcf",
+          "label": "Forecast levered free cash flow",
+          "explanation": "An unlevered DCF discounts unlevered free cash flow, so this does not belong."
+        }
+      ],
+      "distractors": [
+        "vs-d-lfcf"
+      ],
+      "solutions": [
+        {
+          "id": "vg-main",
+          "title": "Main solution",
+          "steps": [
+            "vs-forecast",
+            "vs-wacc",
+            "vs-discount",
+            "vs-ev"
+          ],
+          "edges": [
+            {
+              "id": "ve-01",
+              "from": "vs-forecast",
+              "to": "vs-discount",
+              "explanation": "Cash flows must be forecast before they can be discounted."
+            },
+            {
+              "id": "ve-02",
+              "from": "vs-wacc",
+              "to": "vs-discount",
+              "explanation": "The discount rate is needed to discount."
+            },
+            {
+              "id": "ve-03",
+              "from": "vs-discount",
+              "to": "vs-ev",
+              "explanation": "Enterprise value is the sum of the present values."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

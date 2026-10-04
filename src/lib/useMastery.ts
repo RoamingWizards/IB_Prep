@@ -8,7 +8,7 @@ import {
   getStatementAttempts,
   getValuationAttempts,
 } from "./db"
-import { computeMastery, extractEvidence, summariseMastery, type ConceptMastery, type MasterySummary, type RawResults } from "./mastery"
+import { computeMastery, extractEvidence, summariseMastery, type ConceptMastery, type Evidence, type MasterySummary, type RawResults } from "./mastery"
 
 export interface MasteryState {
   /** One entry per concept in the content, in content order. */
@@ -17,6 +17,10 @@ export interface MasteryState {
   summary: MasterySummary
   /** Results that could not be tied to a concept (removed exercises, generated Quick Maths). */
   unlinked: number
+  /** Every saved result as concept evidence, for time-based views. */
+  evidence: Evidence[]
+  /** Every saved result as stored, for activity views (includes results that name no concept). */
+  raw: RawResults
   /** When the calculation was made. Pass this as `now` to repeat it. */
   computedAt: number
 }
@@ -48,7 +52,7 @@ export function useMastery(): { state: MasteryState | null; targets: ReturnType<
     if (!raw) return null
     const { evidence, report } = extractEvidence(raw.results, (id) => exercisesById.get(id)?.conceptIds)
     const mastery = computeMastery(evidence, bank.concepts.map((c) => c.id), raw.at)
-    return { mastery, byId: new Map(mastery.map((m) => [m.conceptId, m])), summary: summariseMastery(mastery), unlinked: report.unlinked, computedAt: raw.at }
+    return { mastery, evidence, raw: raw.results, byId: new Map(mastery.map((m) => [m.conceptId, m])), summary: summariseMastery(mastery), unlinked: report.unlinked, computedAt: raw.at }
   }, [raw, bank.concepts, exercisesById])
 
   const targets = useMemo(() => conceptTargets(bank), [bank])

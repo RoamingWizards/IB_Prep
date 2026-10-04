@@ -1,4 +1,5 @@
 import { BaseEdge, getBezierPath, useInternalNode, type EdgeProps } from "@xyflow/react"
+import { alpha } from "@/components/charts/colour"
 import { getEdgeParams } from "./geometry"
 import { EDGE_COLOR, type FlowEdge } from "./status"
 
@@ -23,7 +24,7 @@ export function FloatingEdge({ id, source, target, markerEnd, data, selected }: 
         stroke: color,
         strokeWidth: selected ? 3.4 : 2.4,
         strokeDasharray: status === "optional" ? "7 6" : undefined,
-        filter: `drop-shadow(0 0 ${selected ? 7 : 4}px ${color}99)`,
+        filter: `drop-shadow(0 0 ${selected ? 7 : 4}px ${alpha(color, 60)})`,
       }}
     />
   )

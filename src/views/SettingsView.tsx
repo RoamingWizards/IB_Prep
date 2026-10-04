@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react"
 import { X } from "lucide-react"
+import { AppearanceSettings } from "@/components/AppearanceSettings"
 import { ContentSettings } from "@/components/ContentSettings"
+import { PrivacyData } from "@/components/PrivacyData"
+import { PrivacyNotice } from "@/components/PrivacyNotice"
 import { GlowButton, Panel } from "@/components/kit"
 import { ACTIONS, DEFAULT_BINDINGS, eventToCombo, isMac, type ActionDef } from "@/lib/keybinds"
 import { useKeybinds } from "@/lib/keybindsContext"
@@ -77,7 +80,7 @@ function KeybindRow({ action }: { action: ActionDef }) {
             }}
             className={cn(
               "h-10 min-w-40 rounded-xl border border-white/12 bg-black/20 px-4 text-sm transition-colors outline-none hover:border-white/25 focus-visible:ring-2 focus-visible:ring-ring",
-              active && "border-primary/70 bg-primary/10 text-[#cfe0ff] shadow-[0_0_24px_-8px_var(--primary)]",
+              active && "border-primary/70 bg-primary/10 text-[var(--accent-text)] shadow-[0_0_24px_-8px_var(--primary)]",
               !active && !current && "text-muted-foreground",
             )}
           >
@@ -115,8 +118,17 @@ export function SettingsView() {
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6">
       <h1 className="font-serif text-2xl font-semibold">Settings</h1>
+      <nav aria-label="Settings sections" className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground" data-testid="settings-nav">
+        {[["Appearance", "appearance-settings"], ["Keybinds", "keybinds"], ["Content", "content-settings"], ["Privacy & Data", "privacy-data"], ["Privacy notice", "privacy-notice"]].map(([label, id]) => (
+          <a key={id} href={`#${id}`} onClick={(e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }) }} className="underline decoration-white/20 underline-offset-2 hover:text-foreground">
+            {label}
+          </a>
+        ))}
+      </nav>
 
-      <Panel className="p-6">
+      <AppearanceSettings />
+
+      <Panel className="p-6" id="keybinds">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-lg font-medium">Keybinds</h2>
@@ -149,6 +161,10 @@ export function SettingsView() {
       </Panel>
 
       <ContentSettings />
+
+      <PrivacyData />
+
+      <PrivacyNotice />
     </div>
   )
 }

@@ -5,7 +5,7 @@
 import { getMeta, setMeta, type Rating } from "./db"
 
 export type ChoiceActionId = "choiceA" | "choiceB" | "choiceC" | "choiceD" | "choiceE"
-export type ActionId = "flip" | "again" | "hard" | "good" | "easy" | "collapseMenu" | ChoiceActionId | "choiceContinue"
+export type ActionId = "flip" | "again" | "hard" | "good" | "easy" | "collapseMenu" | ChoiceActionId | "choiceContinue" | "behavNotes" | "behavChecklist" | "behavTimer"
 
 /** Multiple-choice options by position, so a question's first option is always "Choose option A". */
 export const CHOICE_ACTIONS: ChoiceActionId[] = ["choiceA", "choiceB", "choiceC", "choiceD", "choiceE"]
@@ -29,6 +29,9 @@ export const ACTIONS: ActionDef[] = [
     description: "Deal Walks: pick this option before submitting",
   })),
   { id: "choiceContinue", label: "Submit / next stage", description: "Deal Walks and Quick Maths: submit, then go to the next stage or question" },
+  { id: "behavNotes", label: "Show / hide my notes", description: "Behavioural practice: reveal or hide your bullets and answer" },
+  { id: "behavChecklist", label: "Show / hide checklist", description: "Behavioural practice: reveal or hide the self-review checklist" },
+  { id: "behavTimer", label: "Start / stop timer", description: "Behavioural practice: start or stop the practice timer" },
 ]
 
 export const ACTION_LABEL = Object.fromEntries(ACTIONS.map((a) => [a.id, a.label])) as Record<ActionId, string>
@@ -48,6 +51,9 @@ export const DEFAULT_BINDINGS: Record<ActionId, string> = {
   choiceD: "KeyD",
   choiceE: "KeyE",
   choiceContinue: "Enter",
+  behavNotes: "KeyN",
+  behavChecklist: "KeyL",
+  behavTimer: "KeyT",
 }
 
 export const RATING_ACTION: Record<Rating, ActionId> = {

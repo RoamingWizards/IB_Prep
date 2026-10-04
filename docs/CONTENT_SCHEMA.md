@@ -234,6 +234,46 @@ A hand-authored numerical question with one numeric answer, in the optional `qui
 
 Each session keeps **its own copy of every question**, generated values and answers included, so an import never changes a session already begun. The current question, the unsent text and the clock are saved, so a reload resumes exactly there. Each answered question is saved once as an objective result (apart from flashcard ratings), and sessions appear in History with accuracy and response times. In timed practice the response time runs from the question appearing to Submit, excludes feedback time and pauses while the app is hidden or closed; there is no countdown.
 
+## Behavioural question
+
+A behavioural interview question in the optional `behaviouralQuestions` collection. It holds the question and its coaching only: **never anyone's answer**. A learner's own answers, bullets, reflections and ratings are saved separately in progress storage, keyed by the question's ID, so importing an update to a question never touches them. The questions in `src/content/packs/behavioural-sample.json` (Tell me about yourself, Why investment banking, Why this firm, leadership, teamwork, conflict, failure, strengths and weaknesses) are both the importable example and the reference for the format.
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `id` | yes | Starts with `bq-`. Stable: the learner's writing is attached to it. |
+| `category` | yes | For example "Motivation" or "Experience". The category selector is derived from this. |
+| `title` | yes | Short name for lists and History, up to 200 characters. |
+| `prompt` | yes | The question as an interviewer would ask it, up to 1000 characters. |
+| `firm` | no | Set for a firm-specific prompt, up to 80 characters. |
+| `guidance` | no | 1 to 8 paragraphs of advice. |
+| `framework` | no | `{ "name", "steps" }`: 2 to 8 steps, each `{ "label", "hint" }`. Use `"STAR"` with Situation, Task, Action and Result for experience questions. |
+| `checklist` | no | 1 to 12 short items the learner ticks when reviewing a practice answer. |
+
+Import follows the usual rules: items are added or updated by `id`, a collection left out leaves existing behavioural questions alone, and nothing is deleted. Updating a question replaces its prompt, guidance, framework and checklist, but not what the learner wrote.
+
+### Personal answers (not content)
+
+Answers, bullets, practice sessions (outcome, optional timing, reflection) and the learner's own questions are **not** part of a content pack and are not in the content export. **Export my answers** on the Behavioural screen writes a separate file:
+
+```json
+{
+  "kind": "ib-prep-behavioural-personal",
+  "version": 1,
+  "exportedAt": "2026-10-05T10:00:00.000Z",
+  "questions": [ /* the learner's own questions, including firm-specific ones */ ],
+  "answers": [ { "questionId": "bq-intro-001", "questionTitle": "…", "category": "…", "answer": "…", "bullets": ["…"], "updatedAt": "…" } ],
+  "sessions": [ { "questionId": "…", "practisedAt": "…", "durationSeconds": 83, "outcome": "ready", "reflection": "…", "checklist": { "checked": 3, "total": 5 } } ]
+}
+```
+
+This file is for the learner's own records and backup. It cannot be imported as a content pack, and the app has no import for it yet.
+
+## Import help and example packs
+
+The **?** button at the bottom right of every screen opens an import-help panel. Pick a mode and it can copy a set of instructions for a chat assistant (an LLM) to prepare a pack for that mode, or download a valid example pack. The instructions are built by `src/lib/importHelp.ts` from the schema constants in `src/content/schema.ts` and the format described in this document, include the mode's fields and rules, a real example, and the concept IDs that currently exist in the app (so the assistant can reference them and has no reason to invent any), and ask for JSON with no Markdown fences. They also explain how to save the reply, preview the import and send validation errors back, and that imports merge by ID.
+
+The examples are the files in `src/content/examples/` (one per mode). They are not bundled content; they are only offered for download. `npm run check-examples` validates all of them with the app's validator, and should be run after any change to the schema or the validator. If a rule changes, update the matching text in `src/lib/importHelp.ts` too.
+
 ## IDs
 
 - Lowercase letters, digits and hyphens only, up to 80 characters: `q-dcf-001`, `s-lbo-001`, `c-wacc`, `mc-ipo-001`, `p-ipo`, `ps-ipo-01`, `ts-depreciation-001`, `st-income`, `r-is-dep`, `step-01`.

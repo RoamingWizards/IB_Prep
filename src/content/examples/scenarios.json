@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "example-1",
+  "title": "Example: flashcard scenario",
+  "scenarios": [
+    {
+      "id": "s-example-001",
+      "kind": "scenario",
+      "category": "Valuation",
+      "subcategory": "Enterprise value",
+      "title": "Bridge to equity value (example)",
+      "prompt": "A company has an enterprise value of $1,000m. What is its equity value?",
+      "givens": [
+        {
+          "label": "Debt",
+          "value": "$300m"
+        },
+        {
+          "label": "Cash",
+          "value": "$80m"
+        },
+        {
+          "label": "Other claims",
+          "value": "None"
+        }
+      ],
+      "answer": [
+        "Net debt is debt less cash: $300m − $80m = $220m.",
+        "Equity value = enterprise value − net debt = $1,000m − $220m = $780m."
+      ],
+      "conceptIds": [
+        "c-enterprise-value",
+        "c-equity-value",
+        "c-net-debt"
+      ]
+    }
+  ]
+}

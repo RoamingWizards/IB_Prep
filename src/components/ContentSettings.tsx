@@ -23,6 +23,7 @@ const TYPE_LABEL: Record<ItemType, string> = {
   statement: "Three statements",
   valuation: "Valuation builder",
   quickMath: "Quick maths",
+  behavioural: "Behavioural",
 }
 const MAX_LISTED_ERRORS = 50
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
@@ -119,7 +120,7 @@ export function ContentSettings() {
     link.remove()
     window.setTimeout(() => URL.revokeObjectURL(url), 1000)
     setNote(
-      `Exported ${plural(pack.questions?.length ?? 0, "question")}, ${plural(pack.scenarios?.length ?? 0, "scenario")}, ${plural(pack.multipleChoice?.length ?? 0, "multiple-choice question")}, ${plural(pack.processes?.length ?? 0, "process", "processes")}, ${plural(pack.threeStatementExercises?.length ?? 0, "three-statement exercise")}, ${plural(pack.valuationExercises?.length ?? 0, "valuation exercise")}, ${plural(pack.quickMathQuestions?.length ?? 0, "quick maths question")} and ${plural(pack.concepts?.length ?? 0, "concept")}.`,
+      `Exported ${plural(pack.questions?.length ?? 0, "question")}, ${plural(pack.scenarios?.length ?? 0, "scenario")}, ${plural(pack.multipleChoice?.length ?? 0, "multiple-choice question")}, ${plural(pack.processes?.length ?? 0, "process", "processes")}, ${plural(pack.threeStatementExercises?.length ?? 0, "three-statement exercise")}, ${plural(pack.valuationExercises?.length ?? 0, "valuation exercise")}, ${plural(pack.quickMathQuestions?.length ?? 0, "quick maths question")}, ${plural(pack.behaviouralQuestions?.length ?? 0, "behavioural question")} and ${plural(pack.concepts?.length ?? 0, "concept")}.`,
     )
   }
 
@@ -127,7 +128,7 @@ export function ContentSettings() {
   const nothingToDo = changes !== null && changes.added + changes.updated === 0
 
   return (
-    <Panel className="p-6" data-testid="content-settings">
+    <Panel className="p-6" id="content-settings" data-testid="content-settings">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-medium">Content</h2>
@@ -135,7 +136,7 @@ export function ContentSettings() {
             Version {content.contentVersion} · {plural(bank.questions.length, "question")} ·{" "}
             {plural(bank.scenarios.length, "scenario")} · {plural(bank.multipleChoice.length, "multiple-choice question")} ·{" "}
             {plural(bank.processes.length, "process", "processes")} · {plural(bank.threeStatementExercises.length, "three-statement exercise")} ·{" "}
-            {plural(bank.valuationExercises.length, "valuation exercise")} · {plural(bank.quickMathQuestions.length, "quick maths question")} ·{" "}
+            {plural(bank.valuationExercises.length, "valuation exercise")} · {plural(bank.quickMathQuestions.length, "quick maths question")} · {plural(bank.behaviouralQuestions.length, "behavioural question")} ·{" "}
             {plural(bank.concepts.length, "concept")}
             {content.importedItemCount > 0 && ` · ${plural(content.importedItemCount, "item")} from imports`}
           </p>
