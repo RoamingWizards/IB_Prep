@@ -2,7 +2,7 @@
 // (`ib-prep-progress`). Nothing here ever reads or writes progress.
 import { openDB, type DBSchema, type IDBPDatabase } from "idb"
 import type { Preview, StoredContent, StoredItem } from "./merge.ts"
-import type { Concept, ContentPack, Exercise, MultipleChoice, Process, ThreeStatementExercise, ValuationExercise } from "./types.ts"
+import type { Concept, ContentPack, Exercise, MultipleChoice, Process, QuickMathQuestion, ThreeStatementExercise, ValuationExercise } from "./types.ts"
 
 export interface ImportRecord {
   id?: number
@@ -26,6 +26,7 @@ interface ContentDB extends DBSchema {
   processes: { key: string; value: StoredItem<Process> }
   statementExercises: { key: string; value: StoredItem<ThreeStatementExercise> }
   valuationExercises: { key: string; value: StoredItem<ValuationExercise> }
+  quickMathQuestions: { key: string; value: StoredItem<QuickMathQuestion> }
   imports: { key: number; value: ImportRecord }
   meta: { key: string; value: unknown }
 }
@@ -37,6 +38,7 @@ export const EMPTY_STORED: StoredBundle = {
   processes: [],
   statements: [],
   valuations: [],
+  quickMath: [],
   contentVersion: null,
   imports: [],
 }
@@ -44,9 +46,9 @@ export const EMPTY_STORED: StoredBundle = {
 let dbPromise: Promise<IDBPDatabase<ContentDB>> | null = null
 
 function db() {
-  // Version 2 added multiple-choice questions and processes; version 3 added three-statement exercises and version 4 adds valuation exercises.
+  // Version 2 added multiple-choice questions and processes; version 3 added three-statement exercises and version 4 added valuation exercises and version 5 adds Quick Maths questions.
   // Upgrading only adds stores, so anything already imported is kept as it is.
-  dbPromise ??= openDB<ContentDB>("ib-prep-content", 4, {
+  dbPromise ??= openDB<ContentDB>("ib-prep-content", 5, {
     upgrade(d, oldVersion) {
       if (oldVersion < 1) {
         d.createObjectStore("concepts", { keyPath: "id" })
@@ -64,6 +66,9 @@ function db() {
       if (oldVersion < 4) {
         d.createObjectStore("valuationExercises", { keyPath: "id" })
       }
+      if (oldVersion < 5) {
+        d.createObjectStore("quickMathQuestions", { keyPath: "id" })
+      }
     },
   })
   return dbPromise
@@ -71,13 +76,14 @@ function db() {
 
 export async function loadStored(): Promise<StoredBundle> {
   const d = await db()
-  const [concepts, exercises, choices, processes, statements, valuations, imports, contentVersion] = await Promise.all([
+  const [concepts, exercises, choices, processes, statements, valuations, quickMath, imports, contentVersion] = await Promise.all([
     d.getAll("concepts"),
     d.getAll("exercises"),
     d.getAll("choices"),
     d.getAll("processes"),
     d.getAll("statementExercises"),
     d.getAll("valuationExercises"),
+    d.getAll("quickMathQuestions"),
     d.getAll("imports"),
     d.get("meta", "contentVersion"),
   ])
@@ -88,6 +94,7 @@ export async function loadStored(): Promise<StoredBundle> {
     processes,
     statements,
     valuations,
+    quickMath,
     imports,
     contentVersion: typeof contentVersion === "string" ? contentVersion : null,
   }
@@ -99,7 +106,7 @@ export async function loadStored(): Promise<StoredBundle> {
  */
 export async function applyImport(pack: ContentPack, preview: Preview): Promise<void> {
   const d = await db()
-  const tx = d.transaction(["concepts", "exercises", "choices", "processes", "statementExercises", "valuationExercises", "imports", "meta"], "readwrite")
+  const tx = d.transaction(["concepts", "exercises", "choices", "processes", "statementExercises", "valuationExercises", "quickMathQuestions", "imports", "meta"], "readwrite")
   try {
     let seq = ((await tx.objectStore("meta").get("seq")) as number | undefined) ?? 0
     const concepts = new Map((pack.concepts ?? []).map((c) => [c.id, c]))
@@ -108,6 +115,7 @@ export async function applyImport(pack: ContentPack, preview: Preview): Promise<
     const processes = new Map((pack.processes ?? []).map((p) => [p.id, p]))
     const statements = new Map((pack.threeStatementExercises ?? []).map((e) => [e.id, e]))
     const valuations = new Map((pack.valuationExercises ?? []).map((e) => [e.id, e]))
+    const quickMath = new Map((pack.quickMathQuestions ?? []).map((e) => [e.id, e]))
 
     for (const change of preview.items) {
       if (change.status === "unchanged") continue
@@ -119,6 +127,10 @@ export async function applyImport(pack: ContentPack, preview: Preview): Promise<
         const store = tx.objectStore("choices")
         const existing = await store.get(change.id)
         await store.put({ id: change.id, seq: existing?.seq ?? ++seq, item: choices.get(change.id)! })
+      } else if (change.type === "quickMath") {
+        const store = tx.objectStore("quickMathQuestions")
+        const existing = await store.get(change.id)
+        await store.put({ id: change.id, seq: existing?.seq ?? ++seq, item: quickMath.get(change.id)! })
       } else if (change.type === "valuation") {
         const store = tx.objectStore("valuationExercises")
         const existing = await store.get(change.id)

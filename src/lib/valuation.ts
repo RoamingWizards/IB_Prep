@@ -1,5 +1,6 @@
 // Pure logic for the Valuation Builder: grading a learner's diagram against the accepted solutions and
 // laying a solution out. No browser APIs, so it can also be checked from Node.
+import { layeredLayout } from "./graphLayout.ts"
 import type { ValuationExercise, ValuationGraph } from "@/content/types"
 
 export interface LearnerEdge {
@@ -112,26 +113,6 @@ export function gradeValuation(exercise: ValuationExercise, placedIds: readonly 
  * Positions a solution left to right by dependency depth, so independent branches sit side by side
  * and a step always appears to the right of everything it depends on.
  */
-export function layoutGraph(graph: ValuationGraph, columnWidth = 310, rowHeight = 112): Record<string, { x: number; y: number }> {
-  const into = new Map<string, string[]>(graph.steps.map((s) => [s, []]))
-  for (const e of graph.edges) into.get(e.to)?.push(e.from)
-  const depth = new Map<string, number>()
-  const depthOf = (s: string): number => {
-    const known = depth.get(s)
-    if (known !== undefined) return known
-    depth.set(s, 0) // guards against a cycle in malformed data
-    const d = Math.max(-1, ...(into.get(s) ?? []).map(depthOf)) + 1
-    depth.set(s, d)
-    return d
-  }
-  graph.steps.forEach(depthOf)
-  const columns = new Map<number, string[]>()
-  for (const s of graph.steps) columns.set(depth.get(s)!, [...(columns.get(depth.get(s)!) ?? []), s])
-  const tallest = Math.max(...[...columns.values()].map((c) => c.length))
-  const out: Record<string, { x: number; y: number }> = {}
-  for (const [d, ids] of columns) {
-    const offset = ((tallest - ids.length) * rowHeight) / 2
-    ids.forEach((id, i) => (out[id] = { x: d * columnWidth, y: offset + i * rowHeight }))
-  }
-  return out
+export function layoutGraph(graph: ValuationGraph, columnWidth = 310, rowHeight = 112, center = true): Record<string, { x: number; y: number }> {
+  return layeredLayout(graph.steps, graph.edges.map((e) => [e.from, e.to] as const), { columnWidth, rowHeight, center })
 }

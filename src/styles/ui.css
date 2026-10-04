@@ -291,3 +291,42 @@
 .vb-bank-item[draggable="true"] { cursor: grab; }
 .vb-bank-item[draggable="true"]:hover { border-color: rgb(139 124 246 / 0.55); background: rgb(139 124 246 / 0.08); }
 .vb-bank-item[data-placed="true"] { opacity: 0.5; }
+
+/* ---- Exercise reached from the dashboard ---- */
+[data-focus="true"] {
+  border-color: rgb(120 150 255 / 0.6);
+  box-shadow: 0 0 0 2px rgb(91 155 255 / 0.45), 0 0 40px -8px rgb(91 155 255 / 0.7);
+  transition: box-shadow 200ms, border-color 200ms;
+}
+
+/* ---- Skill tree ---- */
+.st-node {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem;
+  width: 10.25rem; min-height: 3rem; padding: 0.4rem 0.75rem; border-radius: 18px;
+  border: 1.5px solid var(--st-color, rgb(255 255 255 / 0.2)); color: var(--foreground);
+  background: linear-gradient(rgb(var(--st-rgb, 255 255 255) / 0.07), rgb(var(--st-rgb, 255 255 255) / 0.07)), rgb(28 31 41);
+  box-shadow: 0 6px 18px -8px rgb(0 0 0 / 0.8), inset 0 0 22px -12px var(--st-color, transparent);
+  font-size: 0.78rem; line-height: 1.22; text-align: center; cursor: pointer;
+  transition: box-shadow 160ms, border-color 160ms;
+}
+.st-node[data-level="not-studied"] { --st-color: rgb(255 255 255 / 0.22); --st-rgb: 255 255 255; color: var(--muted-foreground); }
+.st-node[data-level="weak"] { --st-color: var(--grade-again); --st-rgb: 240 101 122; }
+.st-node[data-level="developing"] { --st-color: var(--grade-good); --st-rgb: 91 155 255; }
+.st-node[data-level="strong"] { --st-color: var(--grade-easy); --st-rgb: 56 201 141; }
+.st-node:hover { box-shadow: 0 0 0 1px var(--st-color), 0 0 20px -4px var(--st-color); }
+.st-node[data-selected] { box-shadow: 0 0 0 2px #8b7cf6, 0 0 28px -2px rgb(139 124 246 / 0.85), inset 0 0 22px -12px var(--st-color, transparent); }
+.st-node[data-dim] { opacity: 0.45; }
+.st-name { font-weight: 500; overflow-wrap: anywhere; }
+.st-level { font-size: 0.75rem; opacity: 0.85; font-variant-numeric: tabular-nums; }
+.st-node[data-level="not-studied"] .st-name { color: var(--foreground); opacity: 0.8; }
+.st-handle { width: 6px; height: 6px; min-width: 6px; min-height: 6px; background: var(--st-color, #8b9cff); border: none; opacity: 0.7; }
+.st-swatch { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 999px; border: 1.5px solid var(--st-color); background: rgb(var(--st-rgb) / 0.18); }
+.st-swatch[data-level="not-studied"] { --st-color: rgb(255 255 255 / 0.35); --st-rgb: 255 255 255; }
+.st-swatch[data-level="weak"] { --st-color: var(--grade-again); --st-rgb: 240 101 122; }
+.st-swatch[data-level="developing"] { --st-color: var(--grade-good); --st-rgb: 91 155 255; }
+.st-swatch[data-level="strong"] { --st-color: var(--grade-easy); --st-rgb: 56 201 141; }
+
+/* ---- Valuation Builder slot grid ---- */
+.vb-slot { width: 230px; height: 56px; border-radius: 26px; border: 1.5px dashed rgb(255 255 255 / 0.13); background: rgb(255 255 255 / 0.015); }
+.vb-stage { width: 230px; text-align: center; font-size: 0.75rem; letter-spacing: 0.02em; color: var(--muted-foreground); padding-bottom: 0.3rem; border-bottom: 1px solid rgb(255 255 255 / 0.09); }
+.vb-caption { margin: 0.6rem !important; padding: 0.3rem 0.65rem; border-radius: 10px; font-size: 0.75rem; color: var(--muted-foreground); background: rgb(18 19 23 / 0.75); border: 1px solid rgb(255 255 255 / 0.08); pointer-events: none; }

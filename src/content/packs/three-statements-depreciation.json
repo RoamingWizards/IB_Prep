@@ -7,12 +7,19 @@
     {
       "id": "c-retained-earnings",
       "name": "Retained earnings",
-      "summary": "Cumulative net income less dividends. It links the income statement to shareholders' equity on the balance sheet."
+      "summary": "Cumulative net income less dividends. It links the income statement to shareholders' equity on the balance sheet.",
+      "prerequisiteIds": [
+        "c-three-statements"
+      ]
     },
     {
       "id": "c-cash-reconciliation",
       "name": "Cash reconciliation",
-      "summary": "Ending cash on the cash flow statement must equal cash on the balance sheet, which is what ties the three statements together."
+      "summary": "Ending cash on the cash flow statement must equal cash on the balance sheet, which is what ties the three statements together.",
+      "prerequisiteIds": [
+        "c-three-statements",
+        "c-non-cash-charges"
+      ]
     }
   ],
   "threeStatementExercises": [

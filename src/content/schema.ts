@@ -18,6 +18,7 @@ export const ID_PREFIX = {
   valuationStep: "vs-",
   valuationGraph: "vg-",
   valuationEdge: "ve-",
+  quickMath: "qm-",
 } as const
 export const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 export const MAX_ID_LENGTH = 80
@@ -41,3 +42,10 @@ export const MAX_DECIMALS = 4
 export const MAX_VALUATION_STEPS = 40
 export const MAX_VALUATION_GRAPHS = 5
 export const MAX_GRAPH_EDGES = 120
+
+/** Quick Maths limits. */
+export const DIFFICULTIES = ["easy", "medium", "hard"] as const
+export const MAX_QUICK_MATH_ASSUMPTIONS = 8
+
+/** Skill tree: the most prerequisites one concept may list. */
+export const MAX_PREREQUISITES = 12

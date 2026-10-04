@@ -8,6 +8,7 @@ import type {
   ExerciseKind,
   MultipleChoice,
   Process,
+  QuickMathQuestion,
   ThreeStatementExercise,
   ValuationExercise,
 } from "./types.ts"
@@ -26,6 +27,7 @@ export interface StoredContent {
   processes: StoredItem<Process>[]
   statements: StoredItem<ThreeStatementExercise>[]
   valuations: StoredItem<ValuationExercise>[]
+  quickMath: StoredItem<QuickMathQuestion>[]
 }
 
 function overlay<T extends { id: string }>(bundled: T[], stored: StoredItem<T>[]): T[] {
@@ -48,6 +50,7 @@ export function mergeBank(bundled: Bank, stored: StoredContent): Bank {
     processes: overlay(bundled.processes, stored.processes),
     threeStatementExercises: overlay(bundled.threeStatementExercises, stored.statements),
     valuationExercises: overlay(bundled.valuationExercises, stored.valuations),
+    quickMathQuestions: overlay(bundled.quickMathQuestions, stored.quickMath),
   }
 }
 
@@ -59,6 +62,7 @@ export function knownIds(bank: Bank): KnownIds {
     conceptIds: new Set(bank.concepts.map((c) => c.id)),
     choiceIds: new Set(bank.multipleChoice.map((c) => c.id)),
     stageOwners,
+    prerequisites: new Map(bank.concepts.map((c) => [c.id, c.prerequisiteIds ?? []])),
   }
 }
 
@@ -72,7 +76,7 @@ export function deepEqual(a: unknown, b: unknown): boolean {
   return ka.every((k) => k in b && deepEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]))
 }
 
-export type ItemType = "question" | "scenario" | "concept" | "choice" | "process" | "statement" | "valuation"
+export type ItemType = "question" | "scenario" | "concept" | "choice" | "process" | "statement" | "valuation" | "quickMath"
 export type ChangeStatus = "add" | "update" | "unchanged"
 
 export interface PreviewItem {
@@ -121,7 +125,10 @@ export function diffPack(pack: ContentPack, bank: Bank): Preview {
     }
   }
   const exerciseInfo = (e: Exercise) => ({ label: e.title, category: e.category, subcategory: e.subcategory })
-  compare(pack.concepts, bank.concepts, "concept", (c) => ({ label: c.name }))
+  compare(pack.concepts, bank.concepts, "concept", (c) => ({
+    label: c.name,
+    detail: c.prerequisiteIds?.length ? `${c.prerequisiteIds.length} ${c.prerequisiteIds.length === 1 ? "prerequisite" : "prerequisites"}` : undefined,
+  }))
   compare(pack.questions, bank.questions, "question", exerciseInfo)
   compare(pack.scenarios, bank.scenarios, "scenario", exerciseInfo)
   compare(pack.multipleChoice, bank.multipleChoice, "choice", (c) => ({
@@ -144,6 +151,12 @@ export function diffPack(pack: ContentPack, bank: Bank): Preview {
     category: e.category,
     subcategory: e.subcategory,
     detail: `${e.steps.length} steps · ${e.solutions.length} accepted ${e.solutions.length === 1 ? "solution" : "solutions"}`,
+  }))
+  compare(pack.quickMathQuestions, bank.quickMathQuestions, "quickMath", (q) => ({
+    label: q.prompt.length > 90 ? `${q.prompt.slice(0, 87)}…` : q.prompt,
+    category: q.category,
+    subcategory: q.subcategory,
+    detail: q.difficulty,
   }))
 
   const newTopics: Preview["newTopics"] = []
@@ -179,5 +192,6 @@ export function bankToPack(bank: Bank, contentVersion: string, exportedAt: strin
     processes: bank.processes,
     threeStatementExercises: bank.threeStatementExercises,
     valuationExercises: bank.valuationExercises,
+    quickMathQuestions: bank.quickMathQuestions,
   }
 }
