@@ -26,7 +26,7 @@ import { SlotNode, StageNode, type SlotNodeType, type StageNodeType } from "@/co
 import { StepNode, type NodeStatus, type StepNodeType } from "@/components/valuation/StepNode"
 import type { ValuationStep } from "@/content/types"
 import { saveValuationDraft, saveValuationView, submitValuationAttempt, type ValuationAttempt } from "@/lib/db"
-import { COL_W, firstFreeSlot, gridSize, NODE_H, NODE_W, ROW_H, slotAt, slotKey, slotPosition, snapAll, snapToSlot } from "@/lib/slots"
+import { firstFreeSlot, gridSize, LANE_W, NODE_H, NODE_W, slotAt, slotKey, slotPosition, snapAll, snapToSlot, STAGE_H, toSlotLayout } from "@/lib/slots"
 import { edgeKey, gradeValuation, layoutGraph, type LearnerEdge } from "@/lib/valuation"
 
 interface Props {
@@ -41,8 +41,10 @@ interface Props {
 const nodeTypes: NodeTypes = { step: StepNode, slot: SlotNode, stage: StageNode }
 const edgeTypes: EdgeTypes = { floating: FloatingEdge }
 const SAVE_DELAY_MS = 500
-/** Stage headings sit this far above the first lane. */
-const STAGE_OFFSET = 44
+const isGridId = (id: string) => id.startsWith("slot-") || id.startsWith("stage-")
+
+/** Width of the "Stage n" label at the left of each row. */
+const STAGE_LABEL_W = 70
 
 function makeNode(step: ValuationStep, position: { x: number; y: number }, status: NodeStatus = "idle"): StepNodeType {
   return { id: step.id, type: "step", position, data: { label: step.label, status } }
@@ -174,8 +176,12 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
   )
   const handleNodesChange = useCallback(
     (changes: NodeChange<StepNodeType>[]) => {
-      onNodesChange(changes)
-      const settled = changes.flatMap((c) => (c.type === "position" && c.dragging === false && c.position ? [c.id] : []))
+      // The slot guides and stage headings are not part of the attempt: ignoring their size and selection changes keeps
+      // them from re-triggering state updates (and the draft autosave timer) on every render.
+      const own = changes.filter((c) => !("id" in c) || !isGridId(c.id))
+      if (own.length === 0) return
+      onNodesChange(own)
+      const settled = own.flatMap((c) => (c.type === "position" && c.dragging === false && c.position ? [c.id] : []))
       if (settled.length > 0) window.setTimeout(() => snapNodes(settled), 0)
     },
     [onNodesChange, snapNodes],
@@ -237,8 +243,6 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
     [screenToFlowPosition, addStep],
   )
 
-  const fit = useCallback(() => void fitView({ padding: 0.2, duration: prefersReducedMotion() ? 0 : 300 }), [fitView])
-
   const reset = useCallback(() => {
     setNodes([])
     setEdges([])
@@ -296,7 +300,7 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
     [edges, grade, submitted],
   )
   const solutionNodes = useMemo(() => {
-    const pos = layoutGraph(solution, COL_W, ROW_H, false)
+    const pos = toSlotLayout(layoutGraph(solution, STAGE_H, LANE_W, false))
     return solution.steps.flatMap((id) => {
       const step = steps.get(id)
       return step ? [{ ...makeNode(step, pos[id], "expected"), draggable: false, selectable: false, connectable: false }] : []
@@ -313,30 +317,32 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
     const shown = showSolution ? solutionNodes : nodes
     const occupied = shown.map((n) => slotAt(n.position))
     const size = showSolution
-      ? { cols: Math.max(1, ...occupied.map((o) => o.col + 1)), rows: Math.max(1, ...occupied.map((o) => o.row + 1)) }
+      ? { lanes: Math.max(1, ...occupied.map((o) => o.lane + 1)), stages: Math.max(1, ...occupied.map((o) => o.stage + 1)) }
       : gridSize(occupied)
     const list: (SlotNodeType | StageNodeType)[] = []
-    for (let col = 0; col < size.cols; col++) {
+    for (let stage = 0; stage < size.stages; stage++) {
       list.push({
-        id: `stage-${col}`,
+        id: `stage-${stage}`,
         type: "stage",
-        position: { x: col * COL_W, y: -STAGE_OFFSET },
-        data: { label: `Stage ${col + 1}` },
-        width: NODE_W,
+        position: { x: -STAGE_LABEL_W - 16, y: stage * STAGE_H + (NODE_H - 24) / 2 },
+        data: { label: `Stage ${stage + 1}` },
+        width: STAGE_LABEL_W,
         height: 24,
+        measured: { width: STAGE_LABEL_W, height: 24 },
         selectable: false,
         draggable: false,
         connectable: false,
         focusable: false,
       })
-      for (let row = 0; row < size.rows; row++) {
+      for (let lane = 0; lane < size.lanes; lane++) {
         list.push({
-          id: `slot-${col}-${row}`,
+          id: `slot-${lane}-${stage}`,
           type: "slot",
-          position: slotPosition({ col, row }),
+          position: slotPosition({ lane, stage }),
           data: {},
           width: NODE_W,
           height: NODE_H,
+          measured: { width: NODE_W, height: NODE_H },
           selectable: false,
           draggable: false,
           connectable: false,
@@ -345,8 +351,17 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
         })
       }
     }
-    return { nodes: list, cols: size.cols, rows: size.rows }
+    return { nodes: list, lanes: size.lanes, stages: size.stages }
   }, [showSolution, solutionNodes, nodes])
+
+  // Fit view frames the diagram (the placed steps) so labels stay as large as possible; with nothing placed it frames the grid.
+  const fit = useCallback(
+    (duration = prefersReducedMotion() ? 0 : 300) => {
+      const ids = (showSolution ? solutionNodes : nodesRef.current).map((n) => ({ id: n.id }))
+      void fitView({ padding: 0.15, duration, ...(ids.length > 0 ? { nodes: ids } : {}) })
+    },
+    [fitView, showSolution, solutionNodes],
+  )
 
   const flowNodes = useMemo(
     () => [...grid.nodes, ...(showSolution ? solutionNodes : answerNodes)] as StepNodeType[],
@@ -360,9 +375,9 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
       firstGrid.current = false
       return
     }
-    const t = window.setTimeout(() => void fitView({ padding: 0.2, duration: prefersReducedMotion() ? 0 : 250 }), 80)
+    const t = window.setTimeout(() => fit(prefersReducedMotion() ? 0 : 250), 80)
     return () => window.clearTimeout(t)
-  }, [grid.cols, grid.rows, fitView])
+  }, [grid.lanes, grid.stages, fit])
 
   const counts = grade
     ? [
@@ -491,7 +506,7 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
               <RotateCcw className="size-4" aria-hidden />
               Reset
             </GlowButton>
-            <GlowButton className="h-10 gap-1.5 px-4 text-sm" onClick={fit} onMouseUp={(e) => e.currentTarget.blur()} data-testid="fit-view">
+            <GlowButton className="h-10 gap-1.5 px-4 text-sm" onClick={() => fit()} onMouseUp={(e) => e.currentTarget.blur()} data-testid="fit-view">
               <Maximize className="size-4" aria-hidden />
               Fit view
             </GlowButton>
@@ -566,7 +581,7 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
               <Controls showInteractive={false} fitViewOptions={{ padding: 0.2 }} />
               {!submitted && (
                 <FlowPanel position="top-left" className="vb-caption" data-testid="grid-caption">
-                  Columns are stages. Steps in the same column can run in parallel.
+                  Each row is a stage. Steps in the same row can run in parallel.
                 </FlowPanel>
               )}
             </ReactFlow>

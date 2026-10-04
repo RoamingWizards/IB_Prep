@@ -196,7 +196,7 @@ Every step and connection reference is validated; each step in the bank must be 
 - **Missing steps:** required steps not placed. **Distractors:** distractor steps placed. **Extra steps:** placed steps in neither group.
 - A required connection is **correct** if the learner drew it (or one of its `alternatives`) in the right direction. Otherwise it is **missing**.
 - A drawn connection that satisfies nothing is **incorrect**, marked as reversed, unsupported, or involving a step not in the solution. Optional connections are never penalised.
-- Positions are never graded. The attempt is perfect when nothing is missing, extra or incorrect.
+- Positions are never graded. The Valuation Builder places steps in a stage-and-lane slot grid that snaps bubbles into alignment, but a step's slot says nothing about correctness and an exercise's JSON does not describe the grid. The attempt is perfect when nothing is missing, extra or incorrect.
 
 ### Valuation attempts
 

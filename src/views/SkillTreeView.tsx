@@ -204,7 +204,7 @@ function SkillTree({ onOpen }: { onOpen: (target: PracticeTarget) => void }) {
         {chain && selected ? (
           <span data-testid="focus-note">
             Showing {selected.name} and its chain: {chain.prerequisites.size} {chain.prerequisites.size === 1 ? "prerequisite" : "prerequisites"} and {chain.dependents.size}{" "}
-            {chain.dependents.size === 1 ? "concept" : "concepts"} that build on it. Other concepts are hidden.
+            {chain.dependents.size === 1 ? "concept that builds" : "concepts that build"} on it. Other concepts are hidden.
           </span>
         ) : (
           visible.length < bank.concepts.length && (

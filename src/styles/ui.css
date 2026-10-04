@@ -269,11 +269,11 @@
 /* A bubble: dark body with a blue-to-violet gradient border; selection adds a glow. */
 .vb-node {
   position: relative; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-  min-width: 11rem; max-width: 16rem; min-height: 3.25rem; padding: 0.55rem 1.5rem;
+  box-sizing: border-box; width: 230px; height: 64px; padding: 0.3rem 1.35rem;
   border-radius: 26px; border: 1.5px solid transparent; color: var(--foreground);
   background: linear-gradient(#1c1f29, #1c1f29) padding-box, linear-gradient(135deg, #5b9bff, #8b7cf6) border-box;
   box-shadow: 0 6px 18px -8px rgb(0 0 0 / 0.8);
-  font-size: 0.8125rem; line-height: 1.3; text-align: center; cursor: grab;
+  font-size: 0.78rem; line-height: 1.2; text-align: center; cursor: grab;
   transition: box-shadow 160ms;
 }
 .vb-node:hover { box-shadow: 0 0 0 1px rgb(139 124 246 / 0.4), 0 0 20px -4px rgb(91 155 255 / 0.55); }
@@ -281,7 +281,7 @@
 .vb-node[data-status="correct"] { background: linear-gradient(#1a2a25, #1a2a25) padding-box, linear-gradient(135deg, #38c98d, #5b9bff) border-box; }
 .vb-node[data-status="wrong"] { background: linear-gradient(#2d1d22, #2d1d22) padding-box, linear-gradient(135deg, #f0657a, #e8ac4e) border-box; }
 .vb-node[data-status="expected"] { cursor: default; }
-.vb-label { overflow-wrap: anywhere; }
+.vb-label { overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 .vb-handle { width: 10px; height: 10px; background: #8b9cff; border: 2px solid #1c1f29; }
 .vb-handle:hover { background: #fff; }
 .react-flow__handle.vb-handle { opacity: 0.9; }
@@ -327,6 +327,6 @@
 .st-swatch[data-level="strong"] { --st-color: var(--grade-easy); --st-rgb: 56 201 141; }
 
 /* ---- Valuation Builder slot grid ---- */
-.vb-slot { width: 230px; height: 56px; border-radius: 26px; border: 1.5px dashed rgb(255 255 255 / 0.13); background: rgb(255 255 255 / 0.015); }
-.vb-stage { width: 230px; text-align: center; font-size: 0.75rem; letter-spacing: 0.02em; color: var(--muted-foreground); padding-bottom: 0.3rem; border-bottom: 1px solid rgb(255 255 255 / 0.09); }
+.vb-slot { width: 230px; height: 64px; border-radius: 26px; border: 1.5px dashed rgb(255 255 255 / 0.13); background: rgb(255 255 255 / 0.015); }
+.vb-stage { width: 70px; text-align: right; font-size: 0.75rem; letter-spacing: 0.02em; color: var(--muted-foreground); padding-right: 0.5rem; border-right: 2px solid rgb(139 124 246 / 0.35); line-height: 24px; }
 .vb-caption { margin: 0.6rem !important; padding: 0.3rem 0.65rem; border-radius: 10px; font-size: 0.75rem; color: var(--muted-foreground); background: rgb(18 19 23 / 0.75); border: 1px solid rgb(255 255 255 / 0.08); pointer-events: none; }
