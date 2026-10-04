@@ -38,6 +38,16 @@ One JSON file (`kind: "ib-prep-backup"`, version 1) containing both databases an
 
 The app never contacts an LLM. If the user copies content (for example a Behavioural answer, or an export) into an external LLM service themselves, that service's own terms apply; the app cannot see or control it.
 
+## Packaged macOS app (Electron)
+
+Re-checked on the packaged arm64 app, run with a disposable storage folder:
+
+- It loads `app://ibprep/` from the bundled files; no server and no Terminal. A page `fetch` to an external host and an external image both failed (blocked in the main process), and the only external request the page attempted was that deliberate test image. Normal use produced no other non-`app://` requests.
+- Data lives in the app's storage folder (`~/Library/Application Support/IB Prep`, plus `window-state.json` with window size and position). It is not encrypted and not synced. Quitting and reopening kept every store.
+- The renderer has no Node access. The one external link (React Flow attribution) opens in the system browser only when clicked, and the page itself did not navigate. Electron itself does not send usage data from this app: no crash reporter, auto-updater or telemetry is started. This was checked in the app's own code, not by capturing all operating-system traffic.
+- Browser data is not read by the app. Moving data is a user-initiated backup file restored in the app; browser and app storage stay separate.
+- Everything in the sections above about backups, deletion and external LLMs applies unchanged. The notice's "Where the app is hosted" item is now also about how the DMG is distributed (publisher to supply).
+
 ## Details the publisher must supply
 
 Publisher name and legal entity; privacy contact address; hosting provider/location and log practices; applicable law and jurisdiction statements; effective date and version.
