@@ -14,18 +14,24 @@ if (!file) {
 }
 
 const read = (path) => JSON.parse(readFileSync(path, "utf8"))
-const conceptIds = new Set(read(join(root, "src/content/concepts.json")).map((c) => c.id))
+const baseConcepts = read(join(root, "src/content/concepts.json"))
+const conceptIds = new Set(baseConcepts.map((c) => c.id))
 const choiceIds = new Set()
 const stageOwners = new Map()
+const prerequisites = new Map()
+for (const c of baseConcepts) prerequisites.set(c.id, c.prerequisiteIds ?? [])
 const packsDir = join(root, "src/content/packs")
 for (const name of readdirSync(packsDir).filter((n) => n.endsWith(".json"))) {
   const bundled = read(join(packsDir, name))
-  for (const c of bundled.concepts ?? []) conceptIds.add(c.id)
+  for (const c of bundled.concepts ?? []) {
+    conceptIds.add(c.id)
+    prerequisites.set(c.id, c.prerequisiteIds ?? [])
+  }
   for (const c of bundled.multipleChoice ?? []) choiceIds.add(c.id)
   for (const p of bundled.processes ?? []) for (const st of p.stages) stageOwners.set(st.id, p.id)
 }
 
-const result = parsePack(readFileSync(file, "utf8"), { conceptIds, choiceIds, stageOwners })
+const result = parsePack(readFileSync(file, "utf8"), { conceptIds, choiceIds, stageOwners, prerequisites })
 
 if (!result.ok) {
   console.error(`INVALID: ${file}`)
@@ -34,6 +40,6 @@ if (!result.ok) {
 }
 const { pack, warnings } = result
 console.log(
-  `VALID: ${file}\n  contentVersion ${pack.contentVersion} · ${pack.concepts.length} concepts · ${pack.questions.length} questions · ${pack.scenarios.length} scenarios · ${pack.multipleChoice.length} multiple-choice · ${pack.processes.length} processes · ${pack.threeStatementExercises.length} three-statement exercises · ${pack.valuationExercises.length} valuation exercises`,
+  `VALID: ${file}\n  contentVersion ${pack.contentVersion} · ${pack.concepts.length} concepts · ${pack.questions.length} questions · ${pack.scenarios.length} scenarios · ${pack.multipleChoice.length} multiple-choice · ${pack.processes.length} processes · ${pack.threeStatementExercises.length} three-statement exercises · ${pack.valuationExercises.length} valuation exercises · ${pack.quickMathQuestions.length} quick maths questions`,
 )
 for (const w of warnings) console.log(`  warning: ${w}`)

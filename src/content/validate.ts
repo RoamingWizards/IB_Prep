@@ -7,7 +7,10 @@ import {
   MAX_GRAPH_EDGES,
   MAX_ID_LENGTH,
   MAX_INDENT,
+  DIFFICULTIES,
   MAX_OPTION_ID_LENGTH,
+  MAX_PREREQUISITES,
+  MAX_QUICK_MATH_ASSUMPTIONS,
   MAX_OPTIONS,
   MAX_STAGES,
   MAX_STATEMENT_ROWS,
@@ -32,6 +35,7 @@ import type {
   Given,
   MultipleChoice,
   Process,
+  QuickMathQuestion,
   ProcessStage,
   StatementRow,
   StatementTable,
@@ -54,6 +58,8 @@ export interface KnownIds {
   choiceIds: ReadonlySet<string>
   /** Stage ID -> the process that owns it, for stages in content that already exists. */
   stageOwners: ReadonlyMap<string, string>
+  /** Concept ID -> its prerequisite concept IDs, for concepts that already exist. Needed to catch cycles across packs. */
+  prerequisites?: ReadonlyMap<string, readonly string[]>
 }
 
 export const NO_KNOWN: KnownIds = { conceptIds: new Set(), choiceIds: new Set(), stageOwners: new Map() }
@@ -117,9 +123,22 @@ function validateConcept(raw: unknown, index: number, r: Report): Concept | null
   const label = id ? `${at} (${id})` : at
   if (!isText(raw.name, 200)) r.error(`${label}.name: required text.`)
   if (!isText(raw.summary)) r.error(`${label}.summary: required text.`)
-  warnUnknown(raw, ["id", "name", "summary"], label, r)
+  let prerequisiteIds: string[] | undefined
+  if (raw.prerequisiteIds !== undefined) {
+    const list = raw.prerequisiteIds
+    if (
+      !Array.isArray(list) ||
+      list.length > MAX_PREREQUISITES ||
+      !list.every((v) => typeof v === "string" && v.length <= MAX_ID_LENGTH && ID_PATTERN.test(v) && v.startsWith(ID_PREFIX.concept))
+    ) {
+      r.error(`${label}.prerequisiteIds: must be a list of up to ${MAX_PREREQUISITES} concept IDs (each starting with "${ID_PREFIX.concept}"), or left out.`)
+    } else prerequisiteIds = list as string[]
+  }
+  warnUnknown(raw, ["id", "name", "summary", "prerequisiteIds"], label, r)
   if (r.errors.length > before || !id) return null
-  return { id, name: raw.name as string, summary: raw.summary as string }
+  const out: Concept = { id, name: raw.name as string, summary: raw.summary as string }
+  if (prerequisiteIds) out.prerequisiteIds = prerequisiteIds
+  return out
 }
 
 function validateTable(raw: unknown, at: string, r: Report): StatementTable | null {
@@ -453,6 +472,30 @@ function validateStatementExercise(raw: unknown, index: number, r: Report): Thre
   return out
 }
 
+/** One cycle in a "needs" graph (concept -> its prerequisites) as a path that ends where it starts, or null. */
+export function findCycle(needs: ReadonlyMap<string, readonly string[]>): string[] | null {
+  const state = new Map<string, 1 | 2>() // 1 = on the current path, 2 = finished
+  const path: string[] = []
+  const visit = (n: string): string[] | null => {
+    if (state.get(n) === 2) return null
+    if (state.get(n) === 1) return [...path.slice(path.indexOf(n)), n]
+    state.set(n, 1)
+    path.push(n)
+    for (const m of needs.get(n) ?? []) {
+      const found = visit(m)
+      if (found) return found
+    }
+    path.pop()
+    state.set(n, 2)
+    return null
+  }
+  for (const n of [...needs.keys()].sort()) {
+    const found = visit(n)
+    if (found) return found
+  }
+  return null
+}
+
 /** True if the directed pairs contain a cycle. */
 function hasCycle(nodes: string[], pairs: [string, string][]): boolean {
   const next = new Map<string, string[]>(nodes.map((n) => [n, []]))
@@ -679,6 +722,64 @@ function validateValuationExercise(raw: unknown, index: number, r: Report): Valu
   }
 }
 
+function validateQuickMath(raw: unknown, index: number, r: Report): QuickMathQuestion | null {
+  const at = `quickMathQuestions[${index}]`
+  if (!isRecord(raw)) {
+    r.error(`${at}: must be an object.`)
+    return null
+  }
+  const before = r.errors.length
+  const id = checkId(raw.id, ID_PREFIX.quickMath, at, r)
+  const label = id ? `${at} (${id})` : at
+  if (!isText(raw.category, 80)) r.error(`${label}.category: required text (up to 80 characters).`)
+  if (!isText(raw.subcategory, 80)) r.error(`${label}.subcategory: required text (up to 80 characters).`)
+  if (typeof raw.difficulty !== "string" || !(DIFFICULTIES as readonly string[]).includes(raw.difficulty)) {
+    r.error(`${label}.difficulty: must be one of ${DIFFICULTIES.map((d) => `"${d}"`).join(", ")}.`)
+  }
+  if (!isText(raw.prompt, 2000)) r.error(`${label}.prompt: required text (up to 2000 characters).`)
+  if (!isFiniteNumber(raw.answer)) r.error(`${label}.answer: must be a number (not text), for example 25 or 0.375.`)
+  if (!isFiniteNumber(raw.tolerance) || raw.tolerance < 0) {
+    r.error(`${label}.tolerance: must be a number of 0 or more (0 means the answer must match exactly).`)
+  }
+  if (raw.units !== undefined && !isText(raw.units, 20)) r.error(`${label}.units: must be short text such as "$m", "%" or "x" when present.`)
+  if (raw.rounding !== undefined && !isText(raw.rounding, 200)) r.error(`${label}.rounding: must be text such as "Round to one decimal place." when present.`)
+  if (!isText(raw.explanation, 2000)) r.error(`${label}.explanation: required text (up to 2000 characters), a short worked solution.`)
+  if (!Array.isArray(raw.conceptIds) || raw.conceptIds.length === 0 || !raw.conceptIds.every((c) => typeof c === "string" && c)) {
+    r.error(`${label}.conceptIds: must be a non-empty list of concept IDs.`)
+  }
+  let assumptions: Given[] | undefined
+  if (raw.assumptions !== undefined) {
+    if (
+      !Array.isArray(raw.assumptions) ||
+      raw.assumptions.length > MAX_QUICK_MATH_ASSUMPTIONS ||
+      !raw.assumptions.every((g) => isRecord(g) && isText(g.label, 200) && isText(g.value, 500))
+    ) {
+      r.error(`${label}.assumptions: must be a list of up to ${MAX_QUICK_MATH_ASSUMPTIONS} { "label", "value" } text pairs.`)
+    } else assumptions = raw.assumptions.map((g) => ({ label: g.label, value: g.value }))
+  }
+  // Percentage answers must say which form to enter; the screen then adds the "enter 25, not 0.25" hint itself.
+  if (raw.units === "%" && isFiniteNumber(raw.answer) && Math.abs(raw.answer) > 0 && Math.abs(raw.answer) < 1) {
+    r.warn(`${label}.answer: ${raw.answer} with units "%" will be entered as ${raw.answer}%. For 25% use 25, not 0.25.`)
+  }
+  warnUnknown(raw, ["id", "category", "subcategory", "difficulty", "conceptIds", "prompt", "assumptions", "rounding", "answer", "units", "tolerance", "explanation"], label, r)
+  if (r.errors.length > before || !id) return null
+  const out: QuickMathQuestion = {
+    id,
+    category: (raw.category as string).trim(),
+    subcategory: (raw.subcategory as string).trim(),
+    difficulty: raw.difficulty as QuickMathQuestion["difficulty"],
+    conceptIds: raw.conceptIds as string[],
+    prompt: raw.prompt as string,
+    answer: raw.answer as number,
+    tolerance: raw.tolerance as number,
+    explanation: raw.explanation as string,
+  }
+  if (assumptions) out.assumptions = assumptions
+  if (raw.rounding !== undefined) out.rounding = raw.rounding as string
+  if (raw.units !== undefined) out.units = raw.units as string
+  return out
+}
+
 function validateChoice(raw: unknown, index: number, r: Report): MultipleChoice | null {
   const at = `multipleChoice[${index}]`
   if (!isRecord(raw)) {
@@ -816,12 +917,12 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
   for (const key of ["title", "description", "exportedAt"] as const) {
     if (raw[key] !== undefined && !isText(raw[key], 1000)) r.error(`${key}: must be text when present.`)
   }
-  for (const key of ["concepts", "questions", "scenarios", "multipleChoice", "processes", "threeStatementExercises", "valuationExercises"] as const) {
+  for (const key of ["concepts", "questions", "scenarios", "multipleChoice", "processes", "threeStatementExercises", "valuationExercises", "quickMathQuestions"] as const) {
     if (raw[key] !== undefined && !Array.isArray(raw[key])) r.error(`${key}: must be a list when present.`)
   }
   warnUnknown(
     raw,
-    ["schemaVersion", "contentVersion", "title", "description", "exportedAt", "concepts", "questions", "scenarios", "multipleChoice", "processes", "threeStatementExercises", "valuationExercises"],
+    ["schemaVersion", "contentVersion", "title", "description", "exportedAt", "concepts", "questions", "scenarios", "multipleChoice", "processes", "threeStatementExercises", "valuationExercises", "quickMathQuestions"],
     "pack",
     r,
   )
@@ -836,9 +937,10 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
   const processes = list("processes").map((p, i) => validateProcess(p, i, r))
   const statementExercises = list("threeStatementExercises").map((e, i) => validateStatementExercise(e, i, r))
   const valuationExercises = list("valuationExercises").map((e, i) => validateValuationExercise(e, i, r))
+  const quickMath = list("quickMathQuestions").map((q, i) => validateQuickMath(q, i, r))
 
-  if (concepts.length + questions.length + scenarios.length + choices.length + processes.length + statementExercises.length + valuationExercises.length === 0) {
-    r.error("The pack contains no concepts, questions, scenarios, multiple-choice questions, processes, three-statement exercises or valuation exercises.")
+  if (concepts.length + questions.length + scenarios.length + choices.length + processes.length + statementExercises.length + valuationExercises.length + quickMath.length === 0) {
+    r.error("The pack contains no concepts, questions, scenarios, multiple-choice questions, processes, three-statement exercises, valuation exercises or quick maths questions.")
   }
 
   // Duplicate IDs anywhere in the pack, including stage IDs inside processes.
@@ -855,6 +957,7 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
   list("multipleChoice").forEach((c, i) => isRecord(c) && track(c.id, `multipleChoice[${i}]`))
   list("threeStatementExercises").forEach((e, i) => isRecord(e) && track(e.id, `threeStatementExercises[${i}]`))
   list("valuationExercises").forEach((e, i) => isRecord(e) && track(e.id, `valuationExercises[${i}]`))
+  list("quickMathQuestions").forEach((q, i) => isRecord(q) && track(q.id, `quickMathQuestions[${i}]`))
   list("processes").forEach((p, i) => {
     if (!isRecord(p)) return
     track(p.id, `processes[${i}]`)
@@ -885,6 +988,30 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
   check(list("multipleChoice"), "multipleChoice")
   check(list("threeStatementExercises"), "threeStatementExercises")
   check(list("valuationExercises"), "valuationExercises")
+  check(list("quickMathQuestions"), "quickMathQuestions")
+
+  // Prerequisites: every reference must resolve, a concept may not need itself, and the combined graph (what
+  // exists now, with this pack's concepts replacing their old entries) must have no cycle.
+  const needs = new Map<string, readonly string[]>(known.prerequisites ?? [])
+  list("concepts").forEach((c, i) => {
+    if (!isRecord(c) || typeof c.id !== "string") return
+    const at = `concepts[${i}] (${c.id})`
+    const refs = Array.isArray(c.prerequisiteIds) ? c.prerequisiteIds.filter((v): v is string => typeof v === "string") : []
+    const seenRefs = new Set<string>()
+    for (const ref of refs) {
+      if (ref === c.id) r.error(`${at}.prerequisiteIds: a concept cannot be its own prerequisite ("${ref}").`)
+      else if (!packConcepts.has(ref) && !known.conceptIds.has(ref)) {
+        r.error(`${at}.prerequisiteIds: unknown concept "${ref}". Define it in this pack's concepts or import it first.`)
+      }
+      if (seenRefs.has(ref)) r.warn(`${at}.prerequisiteIds: "${ref}" is listed more than once.`)
+      seenRefs.add(ref)
+    }
+    needs.set(c.id, refs.filter((ref) => ref !== c.id))
+  })
+  const cycle = findCycle(needs)
+  if (cycle && list("concepts").some((c) => isRecord(c) && typeof c.id === "string" && cycle.includes(c.id))) {
+    r.error(`concepts: prerequisites form a cycle: ${cycle.join(" needs ")}. A concept cannot depend on itself, directly or through other concepts.`)
+  }
 
   // Each stage must point at a multiple-choice question in this pack or already in the app,
   // and a stage ID may not already belong to a different process.
@@ -920,6 +1047,7 @@ export function validatePack(raw: unknown, known: KnownIds): ValidationResult {
     processes: processes as Process[],
     threeStatementExercises: statementExercises as ThreeStatementExercise[],
     valuationExercises: valuationExercises as ValuationExercise[],
+    quickMathQuestions: quickMath as QuickMathQuestion[],
   }
   if (raw.title !== undefined) pack.title = raw.title as string
   if (raw.description !== undefined) pack.description = raw.description as string

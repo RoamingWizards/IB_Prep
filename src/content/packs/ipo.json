@@ -12,27 +12,42 @@
     {
       "id": "c-lead-underwriter",
       "name": "Lead underwriter",
-      "summary": "The bank that leads an offering: it advises on structure, valuation and timing, runs the process and sells the shares to investors."
+      "summary": "The bank that leads an offering: it advises on structure, valuation and timing, runs the process and sells the shares to investors.",
+      "prerequisiteIds": [
+        "c-ipo-process"
+      ]
     },
     {
       "id": "c-registration-statement",
       "name": "Registration statement",
-      "summary": "The filing with the securities regulator (Form S-1 in the US) that describes the company and the offering, including a prospectus."
+      "summary": "The filing with the securities regulator (Form S-1 in the US) that describes the company and the offering, including a prospectus.",
+      "prerequisiteIds": [
+        "c-lead-underwriter"
+      ]
     },
     {
       "id": "c-bookbuilding",
       "name": "Bookbuilding",
-      "summary": "Collecting investor orders at different prices during marketing so the banks can judge demand and set the offer price."
+      "summary": "Collecting investor orders at different prices during marketing so the banks can judge demand and set the offer price.",
+      "prerequisiteIds": [
+        "c-registration-statement"
+      ]
     },
     {
       "id": "c-oversubscription",
       "name": "Oversubscription",
-      "summary": "Demand for the shares in an offering exceeding the number of shares available."
+      "summary": "Demand for the shares in an offering exceeding the number of shares available.",
+      "prerequisiteIds": [
+        "c-bookbuilding"
+      ]
     },
     {
       "id": "c-greenshoe",
       "name": "Greenshoe",
-      "summary": "An over-allotment option letting underwriters sell extra shares, commonly up to 15% of the base deal, and support the price after listing."
+      "summary": "An over-allotment option letting underwriters sell extra shares, commonly up to 15% of the base deal, and support the price after listing.",
+      "prerequisiteIds": [
+        "c-oversubscription"
+      ]
     }
   ],
   "multipleChoice": [

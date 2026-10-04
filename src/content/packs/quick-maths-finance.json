@@ -1,0 +1,395 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "sample-5",
+  "title": "Quick Maths: finance questions",
+  "description": "Hand-authored Quick Maths questions with explicit assumptions, units and rounding instructions. Arithmetic questions are generated in the app and are not content.",
+  "quickMathQuestions": [
+    {
+      "id": "qm-ev-bridge-pref-001",
+      "category": "EV bridges",
+      "subcategory": "Equity to enterprise value",
+      "difficulty": "medium",
+      "conceptIds": [
+        "c-enterprise-value",
+        "c-equity-value",
+        "c-net-debt"
+      ],
+      "prompt": "What is the company's enterprise value?",
+      "assumptions": [
+        {
+          "label": "Equity value",
+          "value": "$1,250m"
+        },
+        {
+          "label": "Debt",
+          "value": "$400m"
+        },
+        {
+          "label": "Preferred stock",
+          "value": "$50m"
+        },
+        {
+          "label": "Non-controlling interest",
+          "value": "$25m"
+        },
+        {
+          "label": "Cash",
+          "value": "$175m"
+        }
+      ],
+      "answer": 1550,
+      "units": "$m",
+      "tolerance": 0,
+      "explanation": "Add every claim on the business and subtract cash: 1,250 + 400 + 50 + 25 − 175 = 1,550."
+    },
+    {
+      "id": "qm-equity-bridge-001",
+      "category": "EV bridges",
+      "subcategory": "Enterprise to equity value",
+      "difficulty": "hard",
+      "conceptIds": [
+        "c-enterprise-value",
+        "c-equity-value",
+        "c-net-debt"
+      ],
+      "prompt": "What is the equity value attributable to common shareholders?",
+      "assumptions": [
+        {
+          "label": "Enterprise value",
+          "value": "$2,400m"
+        },
+        {
+          "label": "Net debt",
+          "value": "$650m"
+        },
+        {
+          "label": "Non-controlling interest",
+          "value": "$80m"
+        },
+        {
+          "label": "Preferred stock",
+          "value": "$120m"
+        }
+      ],
+      "answer": 1550,
+      "units": "$m",
+      "tolerance": 0,
+      "explanation": "Subtract every claim senior to common equity from enterprise value: 2,400 − 650 − 80 − 120 = 1,550."
+    },
+    {
+      "id": "qm-offer-premium-001",
+      "category": "Percentages",
+      "subcategory": "Offer premium",
+      "difficulty": "easy",
+      "conceptIds": [
+        "c-equity-value",
+        "c-precedent-transactions"
+      ],
+      "prompt": "An acquirer offers $50.00 per share for a target whose unaffected share price is $40.00. What is the offer premium?",
+      "answer": 25,
+      "units": "%",
+      "tolerance": 0.05,
+      "explanation": "Premium = (offer − unaffected price) ÷ unaffected price = (50 − 40) ÷ 40 = 0.25, which is 25%."
+    },
+    {
+      "id": "qm-ev-ebitda-002",
+      "category": "Multiples",
+      "subcategory": "EV/EBITDA",
+      "difficulty": "medium",
+      "conceptIds": [
+        "c-ev-ebitda",
+        "c-enterprise-value",
+        "c-net-debt"
+      ],
+      "prompt": "What EV/EBITDA multiple is the company valued at?",
+      "assumptions": [
+        {
+          "label": "Equity value",
+          "value": "$1,200m"
+        },
+        {
+          "label": "Net debt",
+          "value": "$600m"
+        },
+        {
+          "label": "LTM EBITDA",
+          "value": "$150m"
+        }
+      ],
+      "rounding": "Give the answer to one decimal place.",
+      "answer": 12,
+      "units": "x",
+      "tolerance": 0.05,
+      "explanation": "Enterprise value = equity value + net debt = 1,200 + 600 = 1,800. Multiple = 1,800 ÷ 150 = 12.0x."
+    },
+    {
+      "id": "qm-pv-001",
+      "category": "Valuation",
+      "subcategory": "Discounting",
+      "difficulty": "easy",
+      "conceptIds": [
+        "c-dcf"
+      ],
+      "prompt": "What is the present value of the cash flow?",
+      "assumptions": [
+        {
+          "label": "Cash flow",
+          "value": "$110m received in exactly one year"
+        },
+        {
+          "label": "Discount rate",
+          "value": "10%"
+        }
+      ],
+      "answer": 100,
+      "units": "$m",
+      "tolerance": 0,
+      "explanation": "Divide by one plus the discount rate for each year: 110 ÷ 1.10 = 100."
+    },
+    {
+      "id": "qm-gordon-tv-001",
+      "category": "Valuation",
+      "subcategory": "Terminal value",
+      "difficulty": "medium",
+      "conceptIds": [
+        "c-terminal-value",
+        "c-dcf",
+        "c-wacc"
+      ],
+      "prompt": "What is the terminal value at the end of year 5 using the perpetuity growth method?",
+      "assumptions": [
+        {
+          "label": "Year 5 unlevered FCF",
+          "value": "$100m"
+        },
+        {
+          "label": "Perpetuity growth rate",
+          "value": "2%"
+        },
+        {
+          "label": "WACC",
+          "value": "10%"
+        }
+      ],
+      "answer": 1275,
+      "units": "$m",
+      "tolerance": 0.5,
+      "explanation": "Terminal value = final-year FCF × (1 + g) ÷ (WACC − g) = 100 × 1.02 ÷ (0.10 − 0.02) = 102 ÷ 0.08 = 1,275."
+    },
+    {
+      "id": "qm-exit-multiple-tv-001",
+      "category": "Valuation",
+      "subcategory": "Terminal value",
+      "difficulty": "easy",
+      "conceptIds": [
+        "c-terminal-value",
+        "c-ev-ebitda"
+      ],
+      "prompt": "What is the terminal value at the end of year 5 using the exit multiple method?",
+      "assumptions": [
+        {
+          "label": "Year 5 EBITDA",
+          "value": "$120m"
+        },
+        {
+          "label": "Exit multiple",
+          "value": "9.0x EV/EBITDA"
+        }
+      ],
+      "answer": 1080,
+      "units": "$m",
+      "tolerance": 0,
+      "explanation": "Terminal value = final-year EBITDA × exit multiple = 120 × 9.0 = 1,080."
+    },
+    {
+      "id": "qm-wacc-001",
+      "category": "Valuation",
+      "subcategory": "WACC",
+      "difficulty": "hard",
+      "conceptIds": [
+        "c-wacc",
+        "c-capital-structure",
+        "c-tax-shield"
+      ],
+      "prompt": "What is the company's WACC?",
+      "assumptions": [
+        {
+          "label": "Equity / total capital",
+          "value": "60%"
+        },
+        {
+          "label": "Debt / total capital",
+          "value": "40%"
+        },
+        {
+          "label": "Cost of equity",
+          "value": "10%"
+        },
+        {
+          "label": "Pre-tax cost of debt",
+          "value": "5%"
+        },
+        {
+          "label": "Tax rate",
+          "value": "20%"
+        }
+      ],
+      "answer": 7.6,
+      "units": "%",
+      "tolerance": 0.05,
+      "explanation": "Cost of debt after tax = 5% × (1 − 0.20) = 4%. WACC = 60% × 10% + 40% × 4% = 6.0% + 1.6% = 7.6%."
+    },
+    {
+      "id": "qm-capm-001",
+      "category": "Valuation",
+      "subcategory": "Cost of equity",
+      "difficulty": "medium",
+      "conceptIds": [
+        "c-wacc"
+      ],
+      "prompt": "Using CAPM, what is the cost of equity?",
+      "assumptions": [
+        {
+          "label": "Risk-free rate",
+          "value": "4%"
+        },
+        {
+          "label": "Beta",
+          "value": "1.2"
+        },
+        {
+          "label": "Equity risk premium",
+          "value": "5%"
+        }
+      ],
+      "answer": 10,
+      "units": "%",
+      "tolerance": 0.05,
+      "explanation": "Cost of equity = risk-free rate + beta × equity risk premium = 4% + 1.2 × 5% = 4% + 6% = 10%."
+    },
+    {
+      "id": "qm-moic-001",
+      "category": "Returns",
+      "subcategory": "MOIC",
+      "difficulty": "easy",
+      "conceptIds": [
+        "c-irr-moic",
+        "c-lbo"
+      ],
+      "prompt": "What is the sponsor's money-on-money multiple (MOIC)?",
+      "assumptions": [
+        {
+          "label": "Equity invested",
+          "value": "$200m"
+        },
+        {
+          "label": "Equity proceeds at exit",
+          "value": "$500m"
+        }
+      ],
+      "answer": 2.5,
+      "units": "x",
+      "tolerance": 0,
+      "explanation": "MOIC = exit equity proceeds ÷ equity invested = 500 ÷ 200 = 2.5x."
+    },
+    {
+      "id": "qm-irr-001",
+      "category": "Returns",
+      "subcategory": "IRR",
+      "difficulty": "medium",
+      "conceptIds": [
+        "c-irr-moic"
+      ],
+      "prompt": "What is the approximate IRR?",
+      "assumptions": [
+        {
+          "label": "MOIC",
+          "value": "2.0x"
+        },
+        {
+          "label": "Holding period",
+          "value": "3 years"
+        },
+        {
+          "label": "Interim cash flows",
+          "value": "None"
+        }
+      ],
+      "rounding": "Round to the nearest whole percent.",
+      "answer": 26,
+      "units": "%",
+      "tolerance": 0.5,
+      "explanation": "Solve (1 + r)³ = 2. Since 1.26³ ≈ 2.0, r ≈ 26%."
+    },
+    {
+      "id": "qm-lbo-equity-001",
+      "category": "Returns",
+      "subcategory": "LBO leverage",
+      "difficulty": "easy",
+      "conceptIds": [
+        "c-lbo",
+        "c-capital-structure"
+      ],
+      "prompt": "How much equity does the sponsor contribute?",
+      "assumptions": [
+        {
+          "label": "LTM EBITDA",
+          "value": "$100m"
+        },
+        {
+          "label": "Purchase price",
+          "value": "8.0x EBITDA"
+        },
+        {
+          "label": "Debt raised",
+          "value": "5.0x EBITDA"
+        },
+        {
+          "label": "Fees and other uses",
+          "value": "Ignore"
+        }
+      ],
+      "answer": 300,
+      "units": "$m",
+      "tolerance": 0,
+      "explanation": "Purchase price = 8.0 × 100 = 800. Debt = 5.0 × 100 = 500. Equity = 800 − 500 = 300."
+    },
+    {
+      "id": "qm-accretion-001",
+      "category": "M&A",
+      "subcategory": "Accretion / dilution",
+      "difficulty": "hard",
+      "conceptIds": [
+        "c-accretion-dilution"
+      ],
+      "prompt": "What is pro forma EPS after the all-stock acquisition?",
+      "assumptions": [
+        {
+          "label": "Acquirer net income",
+          "value": "$500m"
+        },
+        {
+          "label": "Acquirer shares",
+          "value": "250m"
+        },
+        {
+          "label": "Target net income",
+          "value": "$60m"
+        },
+        {
+          "label": "New shares issued",
+          "value": "20m"
+        },
+        {
+          "label": "Synergies and fees",
+          "value": "None"
+        }
+      ],
+      "rounding": "Give the answer in dollars to two decimal places.",
+      "answer": 2.07,
+      "units": "$",
+      "tolerance": 0.005,
+      "explanation": "Pro forma net income = 500 + 60 = 560. Pro forma shares = 250 + 20 = 270. EPS = 560 ÷ 270 = $2.074, which is $2.07."
+    }
+  ]
+}

@@ -9,9 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { QuickMathStats } from "@/components/QuickMathStats"
 import { useContent } from "@/content/contentContext"
+import { formatDuration, summarise } from "@/lib/quickMath"
 import {
   getRecentAttempts,
+  getQuickMathResults,
+  getQuickMathSessions,
   getRecentChoiceAttempts,
   getSessions,
   getStatementAttempts,
@@ -20,6 +24,8 @@ import {
   RATINGS,
   type Attempt,
   type ChoiceAttempt,
+  type QuickMathResult,
+  type QuickMathSession,
   type Session,
   type StatementAttempt,
   type ValuationAttempt,
@@ -42,11 +48,13 @@ export function HistoryView() {
     choiceAttempts: ChoiceAttempt[]
     statementAttempts: StatementAttempt[]
     valuationAttempts: ValuationAttempt[]
+    quickMathSessions: QuickMathSession[]
+    quickMathResults: QuickMathResult[]
   } | null>(null)
 
   useEffect(() => {
-    Promise.all([getSessions(), getRecentAttempts(50), getWalks(), getRecentChoiceAttempts(50), getStatementAttempts(), getValuationAttempts()]).then(
-      ([sessions, attempts, walks, choiceAttempts, allStatements, allValuation]) =>
+    Promise.all([getSessions(), getRecentAttempts(50), getWalks(), getRecentChoiceAttempts(50), getStatementAttempts(), getValuationAttempts(), getQuickMathSessions(), getQuickMathResults()]).then(
+      ([sessions, attempts, walks, choiceAttempts, allStatements, allValuation, allMath, mathResults]) =>
         setData({
           sessions,
           attempts,
@@ -54,12 +62,15 @@ export function HistoryView() {
           choiceAttempts,
           statementAttempts: allStatements.filter((a) => a.status === "submitted").slice(0, 50),
           valuationAttempts: allValuation.filter((a) => a.status === "submitted").slice(0, 50),
+          // A session nobody answered a question in is not worth listing.
+          quickMathSessions: allMath.filter((s) => Object.keys(s.answers).length > 0).slice(0, 50),
+          quickMathResults: mathResults,
         }),
     )
   }, [])
 
   if (!data) return null
-  const { sessions, attempts, choiceAttempts, statementAttempts, valuationAttempts } = data
+  const { sessions, attempts, choiceAttempts, statementAttempts, valuationAttempts, quickMathSessions, quickMathResults } = data
   // A walk nobody answered a stage in (for example one replaced by "Start over") is not worth listing.
   const walks = data.walks.filter((w) => w.status === "active" || Object.keys(w.results).length > 0)
 
@@ -67,10 +78,10 @@ export function HistoryView() {
     <div className="mx-auto w-full max-w-5xl space-y-6">
       <h1 className="font-serif text-2xl font-semibold">History</h1>
 
-      {sessions.length === 0 && walks.length === 0 && choiceAttempts.length === 0 && statementAttempts.length === 0 && valuationAttempts.length === 0 && (
+      {sessions.length === 0 && walks.length === 0 && choiceAttempts.length === 0 && statementAttempts.length === 0 && valuationAttempts.length === 0 && quickMathSessions.length === 0 && (
         <Panel className="p-6">
           <p className="text-muted-foreground" data-testid="history-empty">
-            No attempts yet. Grade a card in Questions or Scenarios, finish a stage in Deal Walks or submit a Three Statements or Valuation Builder attempt, and it will appear here.
+            No attempts yet. Grade a card in Questions or Scenarios, finish a stage in Deal Walks or submit a Three Statements or Valuation Builder attempt, answer a Quick Maths question, and it will appear here.
           </p>
         </Panel>
       )}
@@ -239,6 +250,49 @@ export function HistoryView() {
             </TableBody>
           </Table>
         </Panel>
+      )}
+
+      {quickMathSessions.length > 0 && (
+        <>
+          <Panel className="p-5">
+            <h2 className="mb-3 text-sm font-medium">Quick Maths sessions</h2>
+            <Table data-testid="quickmath-sessions-table">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Started</TableHead>
+                  <TableHead>Practice</TableHead>
+                  <TableHead className="text-right">Score</TableHead>
+                  <TableHead className="text-right">Accuracy</TableHead>
+                  <TableHead className="text-right">Total time</TableHead>
+                  <TableHead className="text-right">Average response</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {quickMathSessions.map((s) => {
+                  const sum = summarise(s.questions, s.answers)
+                  return (
+                    <TableRow key={s.id} data-testid="quickmath-session-row">
+                      <TableCell className="whitespace-nowrap">{fmt.format(s.startedAt)}</TableCell>
+                      <TableCell>
+                        {s.selection.category ?? "All categories"} · {s.selection.difficulty ? s.selection.difficulty[0].toUpperCase() + s.selection.difficulty.slice(1) : "All difficulties"} ·{" "}
+                        {s.mode === "timed" ? "Timed" : "Untimed"}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {sum.correct} / {sum.total}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">{sum.answered > 0 ? `${Math.round(sum.accuracy * 100)}%` : "–"}</TableCell>
+                      <TableCell className="text-right tabular-nums">{sum.totalMs === null ? "–" : formatDuration(sum.totalMs)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{sum.averageMs === null ? "–" : formatDuration(sum.averageMs)}</TableCell>
+                      <TableCell>{s.status === "active" ? "In progress" : s.status === "complete" ? "Complete" : "Abandoned"}</TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </Panel>
+          <QuickMathStats results={quickMathResults} />
+        </>
       )}
 
       {valuationAttempts.length > 0 && (

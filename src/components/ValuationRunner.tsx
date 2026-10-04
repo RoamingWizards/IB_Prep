@@ -10,8 +10,10 @@ import {
   useEdgesState,
   useNodesState,
   useReactFlow,
+  Panel as FlowPanel,
   type Connection,
   type EdgeTypes,
+  type NodeChange,
   type NodeTypes,
 } from "@xyflow/react"
 import { ArrowLeft, ChevronDown, ChevronUp, Maximize, RotateCcw } from "lucide-react"
@@ -20,9 +22,11 @@ import { prefersReducedMotion } from "@/components/kit/motion"
 import { ConnectionsPanel, Feedback, SolutionNotes, StepBank, STEP_DRAG_TYPE } from "@/components/ValuationPanels"
 import { FloatingEdge } from "@/components/valuation/FloatingEdge"
 import { EDGE_COLOR, type EdgeStatus, type FlowEdge } from "@/components/valuation/status"
+import { SlotNode, StageNode, type SlotNodeType, type StageNodeType } from "@/components/valuation/GridNodes"
 import { StepNode, type NodeStatus, type StepNodeType } from "@/components/valuation/StepNode"
 import type { ValuationStep } from "@/content/types"
 import { saveValuationDraft, saveValuationView, submitValuationAttempt, type ValuationAttempt } from "@/lib/db"
+import { COL_W, firstFreeSlot, gridSize, NODE_H, NODE_W, ROW_H, slotAt, slotKey, slotPosition, snapAll, snapToSlot } from "@/lib/slots"
 import { edgeKey, gradeValuation, layoutGraph, type LearnerEdge } from "@/lib/valuation"
 
 interface Props {
@@ -34,11 +38,11 @@ interface Props {
   onRetry: () => void
 }
 
-const nodeTypes: NodeTypes = { step: StepNode }
+const nodeTypes: NodeTypes = { step: StepNode, slot: SlotNode, stage: StageNode }
 const edgeTypes: EdgeTypes = { floating: FloatingEdge }
 const SAVE_DELAY_MS = 500
-const NODE_W = 230
-const NODE_H = 56
+/** Stage headings sit this far above the first lane. */
+const STAGE_OFFSET = 44
 
 function makeNode(step: ValuationStep, position: { x: number; y: number }, status: NodeStatus = "idle"): StepNodeType {
   return { id: step.id, type: "step", position, data: { label: step.label, status } }
@@ -53,22 +57,6 @@ function makeEdge(from: string, to: string, status: EdgeStatus = "idle"): FlowEd
     data: { status },
     markerEnd: { type: MarkerType.ArrowClosed, color: EDGE_COLOR[status], width: 18, height: 18 },
   }
-}
-
-/** The first spot at or around `base` that does not sit on another bubble. */
-function freeSpot(nodes: StepNodeType[], base: { x: number; y: number }) {
-  const taken = (x: number, y: number) => nodes.some((n) => Math.abs(n.position.x - x) < NODE_W + 20 && Math.abs(n.position.y - y) < NODE_H + 24)
-  for (let ring = 0; ring < 8; ring++) {
-    for (let dx = -ring; dx <= ring; dx++) {
-      for (let dy = -ring; dy <= ring; dy++) {
-        if (Math.max(Math.abs(dx), Math.abs(dy)) !== ring) continue
-        const x = base.x + dx * (NODE_W + 40)
-        const y = base.y + dy * (NODE_H + 36)
-        if (!taken(x, y)) return { x, y }
-      }
-    }
-  }
-  return base
 }
 
 /**
@@ -93,8 +81,13 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
 
   const [seed] = useState(() => {
     const byId = new Map(initialAttempt.snapshot.steps.map((s) => [s.id, s]))
+    // Attempts saved before the slot grid existed have free-form positions: snap them to slots, left to right.
+    const entries = Object.entries(initialAttempt.placed)
+      .filter(([id]) => byId.has(id))
+      .sort(([, a], [, b]) => a.x - b.x || a.y - b.y)
+    const snapped = snapAll(entries.map(([id, position]) => ({ id, position })), [])
     return {
-      nodes: Object.entries(initialAttempt.placed).flatMap(([id, pos]) => (byId.has(id) ? [makeNode(byId.get(id)!, pos)] : [])),
+      nodes: entries.map(([id]) => makeNode(byId.get(id)!, snapped[id])),
       edges: initialAttempt.edges.map((e) => makeEdge(e.from, e.to)),
     }
   })
@@ -146,24 +139,46 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
   useEffect(() => () => flush(), [flush])
 
   // ---- Editing the diagram ----
-  const centerOfCanvas = useCallback(() => {
-    const r = canvasRef.current?.getBoundingClientRect()
-    return r ? screenToFlowPosition({ x: r.left + r.width / 2, y: r.top + r.height / 2 }) : { x: 0, y: 0 }
-  }, [screenToFlowPosition])
-
-  /** Puts a step on the canvas. A step already placed is ignored, so it can never appear twice. */
+  /** Puts a step into a slot. A step already placed is ignored, so it can never appear twice. */
   const addStep = useCallback(
     (stepId: string, at?: { x: number; y: number }) => {
       const step = steps.get(stepId)
       if (!step || submitted) return
-      const center = centerOfCanvas()
       setNodes((ns) => {
         if (ns.some((n) => n.id === stepId)) return ns
-        const position = at ?? freeSpot(ns, { x: center.x - NODE_W / 2, y: center.y - NODE_H / 2 })
-        return [...ns, makeNode(step, position)]
+        const occupied = ns.map((n) => slotAt(n.position))
+        const taken = new Set(occupied.map(slotKey))
+        const slot = at ? snapToSlot(at, taken, occupied) : firstFreeSlot(taken)
+        return [...ns, makeNode(step, slotPosition(slot))]
       })
     },
-    [steps, submitted, centerOfCanvas, setNodes],
+    [steps, submitted, setNodes],
+  )
+
+  // A bubble let go between slots, or nudged, settles into the nearest free slot. Never onto another bubble.
+  const nodesRef = useRef<StepNodeType[]>([])
+  useEffect(() => {
+    nodesRef.current = nodes
+  })
+  const snapNodes = useCallback(
+    (ids: string[]) => {
+      const idSet = new Set(ids)
+      const current = nodesRef.current
+      const snapped = snapAll(
+        current.filter((n) => idSet.has(n.id)).map((n) => ({ id: n.id, position: n.position })),
+        current.filter((n) => !idSet.has(n.id)).map((n) => ({ id: n.id, position: n.position })),
+      )
+      setNodes((ns) => ns.map((n) => (snapped[n.id] ? { ...n, position: snapped[n.id] } : n)))
+    },
+    [setNodes],
+  )
+  const handleNodesChange = useCallback(
+    (changes: NodeChange<StepNodeType>[]) => {
+      onNodesChange(changes)
+      const settled = changes.flatMap((c) => (c.type === "position" && c.dragging === false && c.position ? [c.id] : []))
+      if (settled.length > 0) window.setTimeout(() => snapNodes(settled), 0)
+    },
+    [onNodesChange, snapNodes],
   )
 
   const returnStep = useCallback(
@@ -281,7 +296,7 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
     [edges, grade, submitted],
   )
   const solutionNodes = useMemo(() => {
-    const pos = layoutGraph(solution)
+    const pos = layoutGraph(solution, COL_W, ROW_H, false)
     return solution.steps.flatMap((id) => {
       const step = steps.get(id)
       return step ? [{ ...makeNode(step, pos[id], "expected"), draggable: false, selectable: false, connectable: false }] : []
@@ -291,6 +306,63 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
     () => solution.edges.map((e) => ({ ...makeEdge(e.from, e.to, e.optional ? "optional" : "expected"), selectable: false })),
     [solution],
   )
+
+  // The slot grid: stage headings and empty slots. Its size depends only on where steps have been placed,
+  // never on the solution, so it gives nothing away before submitting.
+  const grid = useMemo(() => {
+    const shown = showSolution ? solutionNodes : nodes
+    const occupied = shown.map((n) => slotAt(n.position))
+    const size = showSolution
+      ? { cols: Math.max(1, ...occupied.map((o) => o.col + 1)), rows: Math.max(1, ...occupied.map((o) => o.row + 1)) }
+      : gridSize(occupied)
+    const list: (SlotNodeType | StageNodeType)[] = []
+    for (let col = 0; col < size.cols; col++) {
+      list.push({
+        id: `stage-${col}`,
+        type: "stage",
+        position: { x: col * COL_W, y: -STAGE_OFFSET },
+        data: { label: `Stage ${col + 1}` },
+        width: NODE_W,
+        height: 24,
+        selectable: false,
+        draggable: false,
+        connectable: false,
+        focusable: false,
+      })
+      for (let row = 0; row < size.rows; row++) {
+        list.push({
+          id: `slot-${col}-${row}`,
+          type: "slot",
+          position: slotPosition({ col, row }),
+          data: {},
+          width: NODE_W,
+          height: NODE_H,
+          selectable: false,
+          draggable: false,
+          connectable: false,
+          focusable: false,
+          zIndex: -1,
+        })
+      }
+    }
+    return { nodes: list, cols: size.cols, rows: size.rows }
+  }, [showSolution, solutionNodes, nodes])
+
+  const flowNodes = useMemo(
+    () => [...grid.nodes, ...(showSolution ? solutionNodes : answerNodes)] as StepNodeType[],
+    [grid.nodes, showSolution, solutionNodes, answerNodes],
+  )
+
+  // When the grid grows (a step placed in the last spare stage or lane) bring all of it back into view.
+  const firstGrid = useRef(true)
+  useEffect(() => {
+    if (firstGrid.current) {
+      firstGrid.current = false
+      return
+    }
+    const t = window.setTimeout(() => void fitView({ padding: 0.2, duration: prefersReducedMotion() ? 0 : 250 }), 80)
+    return () => window.clearTimeout(t)
+  }, [grid.cols, grid.rows, fitView])
 
   const counts = grade
     ? [
@@ -468,11 +540,14 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
           <div className="vb-canvas" data-testid="valuation-canvas" data-mode={showSolution ? "solution" : submitted ? "review" : "edit"}>
             <ReactFlow
               key={showSolution ? `solution-${solution.id}` : "answer"}
-              nodes={showSolution ? solutionNodes : answerNodes}
+              nodes={flowNodes}
               edges={showSolution ? solutionEdges : answerEdges}
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
-              onNodesChange={showSolution ? undefined : onNodesChange}
+              onNodesChange={showSolution ? undefined : handleNodesChange}
+              onNodeDragStop={(_, __, dragged) => {
+                if (!showSolution && !submitted) snapNodes(dragged.map((n) => n.id))
+              }}
               onEdgesChange={showSolution ? undefined : onEdgesChange}
               onConnect={onConnect}
               isValidConnection={isValidConnection}
@@ -482,13 +557,18 @@ function Runner({ initialAttempt, persisted, onExit, onRetry }: Props) {
               elementsSelectable={!submitted}
               deleteKeyCode={submitted ? null : ["Backspace", "Delete"]}
               colorMode="dark"
-              fitView={showSolution || seed.nodes.length > 0}
+              fitView
               fitViewOptions={{ padding: 0.2 }}
               minZoom={0.2}
               maxZoom={1.8}
             >
               <Background variant={BackgroundVariant.Dots} gap={22} size={1.4} color="rgb(255 255 255 / 0.12)" />
               <Controls showInteractive={false} fitViewOptions={{ padding: 0.2 }} />
+              {!submitted && (
+                <FlowPanel position="top-left" className="vb-caption" data-testid="grid-caption">
+                  Columns are stages. Steps in the same column can run in parallel.
+                </FlowPanel>
+              )}
             </ReactFlow>
           </div>
         </div>

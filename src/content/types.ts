@@ -7,6 +7,8 @@ export interface Concept {
   id: string // e.g. "c-enterprise-value"
   name: string
   summary: string
+  /** Concepts to learn first (concept IDs). Authored, never inferred. Omitted means none. Must not form a cycle. */
+  prerequisiteIds?: string[]
 }
 
 export interface Formula {
@@ -171,6 +173,24 @@ export interface ValuationExercise {
   solutions: ValuationGraph[] // one or more accepted solutions
 }
 
+export type Difficulty = "easy" | "medium" | "hard"
+
+/** A hand-authored Quick Maths question with one numeric answer. Generated arithmetic is not content. */
+export interface QuickMathQuestion {
+  id: string // "qm-…"
+  category: string
+  subcategory: string
+  difficulty: Difficulty
+  conceptIds: string[]
+  prompt: string
+  assumptions?: Given[] // explicit assumptions shown under the prompt
+  rounding?: string // for example "Round to one decimal place."
+  answer: number
+  units?: string // shown beside the input, for example "$m", "%" or "x"
+  tolerance: number // absolute; 0 means the answer must match exactly
+  explanation: string // a short worked solution
+}
+
 export interface ContentPack {
   schemaVersion: number
   contentVersion: string
@@ -184,6 +204,7 @@ export interface ContentPack {
   processes?: Process[]
   threeStatementExercises?: ThreeStatementExercise[]
   valuationExercises?: ValuationExercise[]
+  quickMathQuestions?: QuickMathQuestion[]
 }
 
 /** All content available to the app at one time. */
@@ -195,4 +216,5 @@ export interface Bank {
   processes: Process[]
   threeStatementExercises: ThreeStatementExercise[]
   valuationExercises: ValuationExercise[]
+  quickMathQuestions: QuickMathQuestion[]
 }

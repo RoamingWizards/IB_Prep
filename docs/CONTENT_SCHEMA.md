@@ -37,6 +37,30 @@ Every collection is optional and a collection left out is simply empty. Because 
 | `id` | yes | Starts with `c-`. |
 | `name` | yes | Short display name, up to 200 characters. |
 | `summary` | yes | One or two sentences. |
+| `prerequisiteIds` | no | Up to 12 concept IDs to learn first, each starting with `c-`. Authored by hand, never inferred. Left out means no prerequisites. |
+
+### Prerequisites and the skill tree
+
+`prerequisiteIds` draws the Skill Tree: an arrow runs from each prerequisite to the concept that builds on it. Prerequisites are guidance only; every concept stays open to practise whatever the learner's mastery of its prerequisites.
+
+- Every ID must be a concept in the same pack or one already in the app, and a concept may not list itself. Listing an ID twice is a warning.
+- The prerequisites must not form a cycle, **including across content already in the app**: a pack that would make `c-three-statements` depend (directly or through other concepts) on a concept that already depends on it is rejected, with the cycle named, and nothing from the pack is imported.
+- An import **replaces** a concept as a whole, so a concept re-stated without `prerequisiteIds` loses the prerequisites it had. To add one prerequisite to an existing concept, repeat its `name`, `summary` and the full `prerequisiteIds` list. Concepts left out of a pack keep theirs. Exports include `prerequisiteIds`.
+- Packs written before this field existed stay valid, and a concept without it simply has no incoming arrows.
+
+```json
+{
+  "schemaVersion": 1,
+  "contentVersion": "2026.10.1",
+  "concepts": [
+    { "id": "c-credit-basics", "name": "Credit basics", "summary": "How lenders think about risk and return." },
+    { "id": "c-credit-spreads", "name": "Credit spreads", "summary": "The yield premium over a risk-free rate.",
+      "prerequisiteIds": ["c-credit-basics", "c-net-debt"] }
+  ]
+}
+```
+
+The bundled concepts (`src/content/concepts.json` and the concepts in the bundled packs) carry an authored prerequisite graph of this kind: for example Accrual accounting → Three financial statements → Non-cash charges, and Capital structure and Tax shield → WACC → Discounted cash flow.
 
 ## Exercise (question or scenario)
 
@@ -177,6 +201,38 @@ Every step and connection reference is validated; each step in the bank must be 
 ### Valuation attempts
 
 Each attempt keeps its own copy of the exercise; importing an update never changes an attempt already started. Placements and connections are saved as drafts and restored after a restart. A submission is saved once, with the diagram, grade and time, and appears in History apart from flashcard ratings.
+
+## Quick Maths question
+
+A hand-authored numerical question with one numeric answer, in the optional `quickMathQuestions` collection. Quick Maths also **generates** arithmetic, percentage, fraction, multiple and enterprise-value-bridge questions locally; those are not content and never appear in a pack. Authored questions are mixed into sessions for the categories they belong to, and a category that only authored questions use (for example "Returns") shows only those. The finance questions in `src/content/packs/quick-maths-finance.json` are both the importable example and the reference for the format.
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `id` | yes | Starts with `qm-`. |
+| `category`, `subcategory` | yes | Topic selectors are derived from `category`. Reusing a generated category name ("Arithmetic", "Percentages", "Fractions and decimals", "Multiples", "EV bridges") adds the question to that category. |
+| `difficulty` | yes | `"easy"`, `"medium"` or `"hard"`. |
+| `conceptIds` | yes | Non-empty list of concept IDs, resolved like an exercise's. |
+| `prompt` | yes | The question, up to 2000 characters. |
+| `assumptions` | no | Up to 8 `{ "label", "value" }` pairs shown under the prompt. State every assumption the answer depends on. |
+| `rounding` | no | An instruction such as `"Round to one decimal place."`. |
+| `answer` | yes | A number (not text). |
+| `units` | no | Short text shown beside the answer box, for example `"$m"`, `"%"`, `"x"`, `"bps"` or `"$"`. |
+| `tolerance` | yes | Number of 0 or more: the answer is correct if the learner is within this of `answer`. `0` means exact. |
+| `explanation` | yes | A short worked solution shown after submitting. |
+
+**Percentages.** With `units: "%"` the answer is the percentage figure: store `25` for 25%, not `0.25`. The screen tells the learner "Enter 25 for 25%, not 0.25." under the box. The validator warns when a `%` answer is between 0 and 1 in case that was a slip. For a decimal answer such as 0.375 leave `units` out and say so in an `assumptions` entry.
+
+**Tolerance.** Use `0` where no rounding is involved (whole-dollar bridges, exact multiples). For answers the learner must round, set a tolerance of half the last place (`0.05` for one decimal place, `0.005` for two) and state the rounding in `rounding`.
+
+### How answers are read and graded
+
+- Accepted formats: `1,234.5`, `-7.5`, `(7.5)` (negative), `−7.5`, a leading `$` or `+`, and a trailing `%`, `x` or `bps`. Commas must group digits in threes.
+- A blank or malformed entry is flagged on screen and **never recorded**; the question stays open.
+- A number is correct if it is within `tolerance` of `answer`.
+
+### Quick Maths sessions
+
+Each session keeps **its own copy of every question**, generated values and answers included, so an import never changes a session already begun. The current question, the unsent text and the clock are saved, so a reload resumes exactly there. Each answered question is saved once as an objective result (apart from flashcard ratings), and sessions appear in History with accuracy and response times. In timed practice the response time runs from the question appearing to Submit, excludes feedback time and pauses while the app is hidden or closed; there is no countdown.
 
 ## IDs
 

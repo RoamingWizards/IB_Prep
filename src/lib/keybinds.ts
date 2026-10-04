@@ -28,7 +28,7 @@ export const ACTIONS: ActionDef[] = [
     label: `Choose option ${String.fromCharCode(65 + i)}`,
     description: "Deal Walks: pick this option before submitting",
   })),
-  { id: "choiceContinue", label: "Submit / next stage", description: "Deal Walks: submit the chosen option, then go to the next stage" },
+  { id: "choiceContinue", label: "Submit / next stage", description: "Deal Walks and Quick Maths: submit, then go to the next stage or question" },
 ]
 
 export const ACTION_LABEL = Object.fromEntries(ACTIONS.map((a) => [a.id, a.label])) as Record<ActionId, string>

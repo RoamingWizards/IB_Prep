@@ -21,6 +21,8 @@ import {
   buildSelectionQueue,
   DEFAULT_SELECTION,
   loadSelection,
+  sanitizeSelection,
+  topicTree,
   masteryCounts,
   saveSelection,
   type Selection,
@@ -33,7 +35,8 @@ const LABEL: Record<ExerciseKind, string> = {
 
 const emptyCounts = (): Record<Rating, number> => ({ again: 0, hard: 0, good: 0, easy: 0 })
 
-export function StudyView({ kind }: { kind: ExerciseKind }) {
+/** `preset` is a topic chosen by a link from another screen: used for this visit and never saved. */
+export function StudyView({ kind, preset }: { kind: ExerciseKind; preset?: Selection }) {
   const { exercisesFor, exercisesById } = useContent()
   const [states, setStates] = useState<Map<string, CardState> | null>(null)
   const [queue, setQueue] = useState<string[]>([])
@@ -49,6 +52,7 @@ export function StudyView({ kind }: { kind: ExerciseKind }) {
   const flipLock = useRef(false) // true while a flip animation is running
   const timers = useRef<number[]>([])
   const slide = useSlideSequence()
+  const presetRef = useRef(preset)
 
   /** (Re)builds the queue for a selection and starts a fresh session. */
   const begin = useCallback(
@@ -65,7 +69,10 @@ export function StudyView({ kind }: { kind: ExerciseKind }) {
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([getAllCardStates(), loadSelection(kind, exercisesFor(kind))]).then(([loaded, sel]) => {
+    Promise.all([
+      getAllCardStates(),
+      presetRef.current ? Promise.resolve(sanitizeSelection(presetRef.current, topicTree(exercisesFor(kind)))) : loadSelection(kind, exercisesFor(kind)),
+    ]).then(([loaded, sel]) => {
       if (cancelled) return
       setSelection(sel)
       begin(sel, loaded)

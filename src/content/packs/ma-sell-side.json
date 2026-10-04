@@ -12,32 +12,50 @@
     {
       "id": "c-nda",
       "name": "Non-disclosure agreement",
-      "summary": "A confidentiality agreement a prospective buyer signs before receiving non-public information about the target."
+      "summary": "A confidentiality agreement a prospective buyer signs before receiving non-public information about the target.",
+      "prerequisiteIds": [
+        "c-sell-side-process"
+      ]
     },
     {
       "id": "c-cim",
       "name": "Confidential information memorandum",
-      "summary": "The detailed marketing document (CIM) describing the business, market and financials, shared with buyers after they sign an NDA."
+      "summary": "The detailed marketing document (CIM) describing the business, market and financials, shared with buyers after they sign an NDA.",
+      "prerequisiteIds": [
+        "c-nda"
+      ]
     },
     {
       "id": "c-ioi",
       "name": "Indication of interest",
-      "summary": "A non-binding first-round bid giving a valuation range and key assumptions, used to choose which buyers move forward."
+      "summary": "A non-binding first-round bid giving a valuation range and key assumptions, used to choose which buyers move forward.",
+      "prerequisiteIds": [
+        "c-cim"
+      ]
     },
     {
       "id": "c-due-diligence",
       "name": "Due diligence",
-      "summary": "The buyer's detailed review of the target's business, financials, legal and other matters, usually through a virtual data room."
+      "summary": "The buyer's detailed review of the target's business, financials, legal and other matters, usually through a virtual data room.",
+      "prerequisiteIds": [
+        "c-ioi"
+      ]
     },
     {
       "id": "c-purchase-agreement",
       "name": "Purchase agreement",
-      "summary": "The legal contract for the sale, covering price, representations, indemnities and conditions to closing."
+      "summary": "The legal contract for the sale, covering price, representations, indemnities and conditions to closing.",
+      "prerequisiteIds": [
+        "c-due-diligence"
+      ]
     },
     {
       "id": "c-closing-conditions",
       "name": "Closing conditions",
-      "summary": "Requirements, such as regulatory approvals, that must be satisfied before a signed deal can close."
+      "summary": "Requirements, such as regulatory approvals, that must be satisfied before a signed deal can close.",
+      "prerequisiteIds": [
+        "c-purchase-agreement"
+      ]
     }
   ],
   "multipleChoice": [
