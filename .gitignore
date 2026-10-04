@@ -26,3 +26,7 @@ dist-ssr
 .playwright-mcp
 release
 build/icon.iconset
+ib-prep-backup-*.json
+*.tmp
+*.bak
+scratch*/
