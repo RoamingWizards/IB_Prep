@@ -1,6 +1,16 @@
 // Combining bundled content with imported content, and previewing what a pack would change.
 import type { KnownIds } from "./validate.ts"
-import type { Bank, Concept, ContentPack, Exercise, ExerciseKind, MultipleChoice, Process } from "./types.ts"
+import type {
+  Bank,
+  Concept,
+  ContentPack,
+  Exercise,
+  ExerciseKind,
+  MultipleChoice,
+  Process,
+  ThreeStatementExercise,
+  ValuationExercise,
+} from "./types.ts"
 
 /** An imported item as stored. `seq` keeps the order items were first added in. */
 export interface StoredItem<T> {
@@ -14,6 +24,8 @@ export interface StoredContent {
   exercises: StoredItem<Exercise>[]
   choices: StoredItem<MultipleChoice>[]
   processes: StoredItem<Process>[]
+  statements: StoredItem<ThreeStatementExercise>[]
+  valuations: StoredItem<ValuationExercise>[]
 }
 
 function overlay<T extends { id: string }>(bundled: T[], stored: StoredItem<T>[]): T[] {
@@ -34,6 +46,8 @@ export function mergeBank(bundled: Bank, stored: StoredContent): Bank {
     scenarios: overlay(bundled.scenarios, scenarios),
     multipleChoice: overlay(bundled.multipleChoice, stored.choices),
     processes: overlay(bundled.processes, stored.processes),
+    threeStatementExercises: overlay(bundled.threeStatementExercises, stored.statements),
+    valuationExercises: overlay(bundled.valuationExercises, stored.valuations),
   }
 }
 
@@ -58,7 +72,7 @@ export function deepEqual(a: unknown, b: unknown): boolean {
   return ka.every((k) => k in b && deepEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]))
 }
 
-export type ItemType = "question" | "scenario" | "concept" | "choice" | "process"
+export type ItemType = "question" | "scenario" | "concept" | "choice" | "process" | "statement" | "valuation"
 export type ChangeStatus = "add" | "update" | "unchanged"
 
 export interface PreviewItem {
@@ -119,6 +133,18 @@ export function diffPack(pack: ContentPack, bank: Bank): Preview {
     label: p.title,
     detail: `${p.stages.length} ${p.stages.length === 1 ? "stage" : "stages"}`,
   }))
+  compare(pack.threeStatementExercises, bank.threeStatementExercises, "statement", (e) => ({
+    label: e.title,
+    category: e.category,
+    subcategory: e.subcategory,
+    detail: `${e.statements.length} statements · ${e.steps.length} steps`,
+  }))
+  compare(pack.valuationExercises, bank.valuationExercises, "valuation", (e) => ({
+    label: e.title,
+    category: e.category,
+    subcategory: e.subcategory,
+    detail: `${e.steps.length} steps · ${e.solutions.length} accepted ${e.solutions.length === 1 ? "solution" : "solutions"}`,
+  }))
 
   const newTopics: Preview["newTopics"] = []
   for (const [kind, list, existing] of [
@@ -151,5 +177,7 @@ export function bankToPack(bank: Bank, contentVersion: string, exportedAt: strin
     scenarios: bank.scenarios,
     multipleChoice: bank.multipleChoice,
     processes: bank.processes,
+    threeStatementExercises: bank.threeStatementExercises,
+    valuationExercises: bank.valuationExercises,
   }
 }

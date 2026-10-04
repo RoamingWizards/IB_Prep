@@ -44,13 +44,17 @@ export function ContentProvider({ children }: { children: ReactNode }) {
         (stored?.concepts.length ?? 0) +
         (stored?.exercises.length ?? 0) +
         (stored?.choices.length ?? 0) +
-        (stored?.processes.length ?? 0),
+        (stored?.processes.length ?? 0) +
+        (stored?.statements.length ?? 0) +
+        (stored?.valuations.length ?? 0),
       imports: stored?.imports ?? [],
       exercisesFor: (kind) => (kind === "question" ? bank.questions : bank.scenarios),
       exercisesById: new Map([...bank.questions, ...bank.scenarios].map((e) => [e.id, e])),
       conceptsById: new Map(bank.concepts.map((c) => [c.id, c])),
       choicesById: new Map(bank.multipleChoice.map((c) => [c.id, c])),
       processesById: new Map(bank.processes.map((p) => [p.id, p])),
+      statementExercisesById: new Map(bank.threeStatementExercises.map((e) => [e.id, e])),
+      valuationExercisesById: new Map(bank.valuationExercises.map((e) => [e.id, e])),
       known: knownIds(bank),
       preview: (pack) => diffPack(pack, bank),
       commit,

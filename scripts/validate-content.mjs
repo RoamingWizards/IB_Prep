@@ -34,6 +34,6 @@ if (!result.ok) {
 }
 const { pack, warnings } = result
 console.log(
-  `VALID: ${file}\n  contentVersion ${pack.contentVersion} · ${pack.concepts.length} concepts · ${pack.questions.length} questions · ${pack.scenarios.length} scenarios · ${pack.multipleChoice.length} multiple-choice · ${pack.processes.length} processes`,
+  `VALID: ${file}\n  contentVersion ${pack.contentVersion} · ${pack.concepts.length} concepts · ${pack.questions.length} questions · ${pack.scenarios.length} scenarios · ${pack.multipleChoice.length} multiple-choice · ${pack.processes.length} processes · ${pack.threeStatementExercises.length} three-statement exercises · ${pack.valuationExercises.length} valuation exercises`,
 )
 for (const w of warnings) console.log(`  warning: ${w}`)
