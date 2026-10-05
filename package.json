@@ -1,7 +1,7 @@
 {
   "name": "ib-prep",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -74,7 +74,8 @@
       "category": "public.app-category.education",
       "identity": null,
       "hardenedRuntime": false,
-      "icon": "build/icon.icns"
+      "icon": "build/icon.icns",
+      "artifactName": "IB-Prep-${version}-${arch}.${ext}"
     },
     "dmg": {
       "title": "IB Prep",

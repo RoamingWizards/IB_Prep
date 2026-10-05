@@ -1,13 +1,13 @@
 # Project status
 
-Last updated 2026-10-04. Statuses below were checked against the code, not the plan.
+Last updated 2026-10-05. Statuses below were checked against the code, not the plan.
 
 ## Scope and fixed constraints
 - Offline desktop-style study app: React + TypeScript + Vite, local JSON content, progress in IndexedDB (kept separate from content). No backend, accounts or runtime AI.
 - Content is generated separately and shipped as JSON; the app never writes content.
 - Three-statement scenarios use prepared JSON values and explanations. There is no live accounting engine and none is planned.
 - Transcription, recording and automated verbal grading are removed and stay out of scope. Behavioural answers will be self-graded.
-- macOS is the target platform; the app is currently a browser app run with Vite.
+- macOS is the target platform. It runs in the browser with Vite for development and ships as an unsigned Apple Silicon Electron app (see "macOS desktop packaging").
 
 ## Roadmap (build order)
 
@@ -24,7 +24,7 @@ Last updated 2026-10-04. Statuses below were checked against the code, not the p
 | 9 | Valuation Builder | **Implemented** | Valuation Builder mode (React Flow): step bank with distractors, drag or click to add, draggable bubbles, floating directional edges, keyboard connect/remove, graded by relationships against accepted graphs, solution view, History, drafts. Details below. |
 | 10 | Bubble chronology exercises | **Pending** | Not started. |
 | 11 | Behavioural | **Implemented** | Behavioural mode: provided and your own questions, answer frameworks (STAR), self-review checklists, autosaved answers and bullets kept apart from content, timed practice, Needs work / Ready ratings with reflections, History and a separate personal export. Details below. |
-| 12 | macOS packaging | **Pending** | No Electron, Tauri or app bundle config. Fonts are bundled locally and no network is needed, which helps. |
+| 12 | macOS packaging | **Implemented (unsigned)** | Electron + electron-builder produce an arm64 .app and DMG; signing and notarisation are outstanding. See `docs/PACKAGING.md`. |
 
 Next up: bubble chronology exercises (item 10).
 
@@ -237,6 +237,10 @@ Outstanding for a public release: Developer ID signing, hardened runtime and not
 ## Full content bank bundled (this change)
 
 `content-packs/ib400-complete.json` (355 questions, 43 scenarios, 85 concepts, 84 multiple-choice, 14 processes, 37 three-statement, 13 valuation, 73 quick maths, 63 behavioural) ships with the app, registered in `src/content/bundled.ts`. It repeats 83 items already bundled, all byte-identical; the loader joins items by stable ID (later copy replaces the earlier one in place), so nothing is duplicated and no ID changes. `BUNDLED_CONTENT_VERSION` is now `ib400-complete-2026-10-04-v1`. The pack passes `npm run validate-content`. Verified on disposable storage with a production build: a fresh install shows exactly the pack's counts in Settings → Content, and every study mode lists its items; with existing progress plus an imported pack, progress is untouched and the import layers on top (imported items still win over bundled ones). `.gitignore` also excludes personal backups (`ib-prep-backup-*.json`) and temp files.
+
+## First release 0.1.0 (this change)
+
+Version 0.1.0 (previously 0.0.0), with a README (`README.md`, screenshots in `docs/screenshots/` taken from the packaged app on generated sample data) and the DMG renamed `IB-Prep-<version>-arm64.dmg`. The release is published on GitHub as v0.1.0 with the DMG and `ib400-complete.json` as separate assets; installers are not committed. The packaged build passed content validation, the production build, `npm run electron:dist` and the packaged smoke tests on disposable storage (backup transfer, persistence across quit/reopen, offline blocking, all study modes). The repository is private, so the download link works only for signed-in users with access.
 
 ## Known limits
 - Import help: the instructions are generated text that mirrors the validator; if the schema changes they must be updated by hand (the example check catches only the examples). The assistant's output is still unchecked finance content: the app validates structure and references, not correctness. Copying relies on the browser's clipboard (a fallback is used when it is blocked). The examples add visible "(example)" items if imported into real content.
