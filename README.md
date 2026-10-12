@@ -47,7 +47,7 @@ One documented calculation turns saved results from every mode into a level for 
 
 ## Content
 
-The app ships with a full content bank, bundled so a fresh install is ready to use: 355 questions, 43 scenarios, 85 concepts, 84 multiple-choice questions in 14 deal processes, 37 three-statement exercises, 13 valuation exercises, 73 authored quick-maths questions and 63 behavioural questions. The same bank is published with each release as `ib-interview-core.json`.
+The app ships with a question bank covering accounting, valuation, DCF, M&A, LBOs, three-statement analysis, quick maths, technical scenarios, deal processes, behavioural questions and other common investment-banking interview topics. It is bundled so a fresh install is ready to use: 355 questions, 43 scenarios, 85 concepts, 84 multiple-choice questions in 14 deal processes, 37 three-statement exercises, 13 valuation exercises, 73 authored quick-maths questions and 63 behavioural questions. The same bank is in the repository as `content-packs/ib-interview-core.json`.
 
 Content is plain JSON in a documented format ([docs/CONTENT_SCHEMA.md](docs/CONTENT_SCHEMA.md), with an [example pack](docs/example-content-pack.json)).
 
