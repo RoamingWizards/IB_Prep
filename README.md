@@ -4,7 +4,7 @@
 
 ## Download
 
-**[Download IB Prep 0.1.0 for Apple Silicon (DMG)](https://github.com/RoamingWizards/IB_Prep/releases/download/v0.1.0/IB-Prep-0.1.0-arm64.dmg)** · [Release notes](https://github.com/RoamingWizards/IB_Prep/releases/tag/v0.1.0)
+**[Download IB Prep 0.1.1 for Apple Silicon (DMG)](https://github.com/RoamingWizards/IB_Prep/releases/download/v0.1.1/IB-Prep-0.1.1-arm64.dmg)** · [Release notes](https://github.com/RoamingWizards/IB_Prep/releases/tag/v0.1.1)
 
 Requires an Apple Silicon Mac (M1 or later) on macOS 13 or newer. Intel Macs are not supported by this build. The repository is currently private, so the link only works while signed in to GitHub with access to it.
 
@@ -75,7 +75,7 @@ Read the full details in [docs/PRIVACY_AND_DATA.md](docs/PRIVACY_AND_DATA.md). T
 
 ## Status and limitations
 
-- **Version 0.1.0, first release.** Apple Silicon only; no Intel or universal build.
+- **Version 0.1.1.** Apple Silicon only; no Intel or universal build.
 - **Unsigned and not notarised.** The build is ad-hoc signed only. Developer ID signing and Apple notarisation are outstanding for a wider public release; until then macOS shows the warning described under Install.
 - No automatic updates: install a newer DMG over the old app.
 - Native menus and file dialogs follow macOS standards but were not scripted-tested; import, export and backup were verified through the app's own flows.
