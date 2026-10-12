@@ -240,11 +240,15 @@ Outstanding for a public release: Developer ID signing, hardened runtime and not
 
 ## First release 0.1.0 (this change)
 
-Version 0.1.0 (previously 0.0.0), with a README (`README.md`, screenshots in `docs/screenshots/` taken from the packaged app on generated sample data) and the DMG renamed `IB-Prep-<version>-arm64.dmg`. The release is published on GitHub as v0.1.0 with the DMG and the content pack as separate assets; installers are not committed. The packaged build passed content validation, the production build, `npm run electron:dist` and the packaged smoke tests on disposable storage (backup transfer, persistence across quit/reopen, offline blocking, all study modes). The repository is private, so the download link works only for signed-in users with access.
+Version 0.1.0 (previously 0.0.0), with a README (`README.md`, screenshots in `docs/screenshots/` taken from the packaged app on generated sample data) and the DMG renamed `IB-Prep-<version>-arm64.dmg`. Installers are not committed. The packaged build passed content validation, the production build, `npm run electron:dist` and the packaged smoke tests on disposable storage (backup transfer, persistence across quit/reopen, offline blocking, all study modes). The repository is private, so the download link works only for signed-in users with access.
 
 ## Content pack renamed (this change)
 
 The bundled pack is now `content-packs/ib-interview-core.json` (`BUNDLED_CONTENT_VERSION` `interview-core-2026-10-12-v2`), with the same item counts. Its exercise, concept, process and stage IDs were renamed to use the `-core-` infix (for example `q-core-finance-001`, `c-core-dcf`). There is no progress migration, so saved progress, mastery and History recorded against the old IDs no longer attach to these items. Titles no longer carry a leading number, and the behavioural guidance for the `bq-core-*` questions was rewritten.
+
+## Release 0.1.1 (this change)
+
+Version 0.1.1 ships the renamed content pack described above. It is published on GitHub as v0.1.1 with `IB-Prep-0.1.1-arm64.dmg` and `ib-interview-core.json` as separate assets; the v0.1.0 GitHub release was withdrawn (the `v0.1.0` tag remains). Progress saved in 0.1.0 against the old content IDs does not carry over to the renamed items.
 
 ## Known limits
 - Import help: the instructions are generated text that mirrors the validator; if the schema changes they must be updated by hand (the example check catches only the examples). The assistant's output is still unchecked finance content: the app validates structure and references, not correctness. Copying relies on the browser's clipboard (a fallback is used when it is blocked). The examples add visible "(example)" items if imported into real content.
